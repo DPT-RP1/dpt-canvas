@@ -20,7 +20,7 @@ The performance are horrendous, this won't work
 
 ### The Software way
 Sony has a special rewrite of the View class that can invalidate
-a dirty rectangle in a preferential mode for E-Ink, a lot like what the Ony lib does.
+a dirty rectangle in a preferential mode for E-Ink, a lot like what the Onyx lib does.
 
 * Write a static cache to capture the Sony method at Runtime
 * Run this method instead of View.Invalidate on your custom view, with a parameter
