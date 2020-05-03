@@ -47,3 +47,5 @@ nicely, I don't care too much for it myself. Here is what the app looks like wit
 * See if can draw the eraser circle fast enough
 * Store / retrieve context-based anotation
 * Make the eraser stroke-based like Sony
+* Store / Retrieve strokes or at least the bitmap with event listeners
+so that clients can retrieve them
