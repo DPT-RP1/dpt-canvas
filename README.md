@@ -37,7 +37,7 @@ pre-showing the squiggle (it's around 20px long ?) as a temporary preview.
 
 ## Stylus pressure handling
 It turns out that the device is able to sense pressure like most of its competition. 
-Looking for maths/geometry genius who can find a less naive way to make it look and animate
+Looking for maths/geometry geniuses who can find a less naive way to make it look and animate
 nicely, I don't care too much for it myself. Here is what the app looks like with pressure handling:
 
 
