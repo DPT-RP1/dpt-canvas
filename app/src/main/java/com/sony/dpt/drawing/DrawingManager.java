@@ -20,13 +20,15 @@ public class DrawingManager implements DrawingDelegate {
 
     private int strokeWidth;
 
-    public DrawingManager(final View view, final int strokeWidth) {
+    public DrawingManager(final View view,
+                          final int strokeWidth,
+                          final boolean handlePressureChanges) {
         this.view = view;
         this.strokeWidth = strokeWidth;
-        init();
+        init(handlePressureChanges);
     }
 
-    public void init() {
+    public void init(final boolean handlePressureChanges) {
         final ViewTreeObserver viewTreeObserver = view.getViewTreeObserver();
         if (viewTreeObserver.isAlive()) {
             viewTreeObserver.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
@@ -41,7 +43,13 @@ public class DrawingManager implements DrawingDelegate {
                     // then being rendered to the view
                     drawCanvas = new Canvas(cachedLayer);
 
-                    strikeDelegate = new StrikeDelegate(strokeWidth, view, cachedLayer, drawCanvas);
+                    StrikeDelegate simpleStrikeDelegate = new StrikeDelegate(strokeWidth, view, cachedLayer, drawCanvas);
+                    if (handlePressureChanges) {
+                        strikeDelegate = new PressureSensitiveStrikeDelegate(simpleStrikeDelegate);
+                    } else {
+                        strikeDelegate = simpleStrikeDelegate;
+                    }
+
                     eraserDelegate = new EraserDelegate(view, cachedLayer, drawCanvas);
 
                     currentDelegate = strikeDelegate;

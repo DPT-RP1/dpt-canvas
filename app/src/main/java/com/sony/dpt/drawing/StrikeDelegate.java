@@ -86,9 +86,13 @@ public class StrikeDelegate extends AbstractDrawingDelegate {
         drawCanvas.drawPath(currentPath, paint);
         resetPath();
 
+        // Fast ceil
+        int currentStrokeWidth = (int) paint.getStrokeWidth() + 1;
+
         // We inset by the stroke width so that the invalidation also encompass the full width of the line
-        invalidationRectangle.inset(-strokeWidth, -strokeWidth);
+        invalidationRectangle.inset(-currentStrokeWidth, -currentStrokeWidth);
         view.invalidate(invalidationRectangle);
+        resetInvalidation();
     }
 
     public void onDraw(Canvas canvas) {
@@ -132,4 +136,11 @@ public class StrikeDelegate extends AbstractDrawingDelegate {
         epdUtil.changeDhwStrokeWidth((int) newWidth, (int) newWidth);
     }
 
+    public int getStrokeWidth() {
+        return strokeWidth;
+    }
+
+    public Paint getStrokePaint() {
+        return paint;
+    }
 }

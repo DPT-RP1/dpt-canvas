@@ -13,19 +13,22 @@ public class DrawableView extends ConstraintLayout {
 
     private final DrawingManager drawingManager;
 
+    private static final int BASE_STROKE_SIZE = 6;
+    private static final boolean HANDLE_PRESSURE_CHANGE = false;
+
     public DrawableView(Context context) {
         super(context);
-        drawingManager = new DrawingManager(this, 6);
+        drawingManager = new DrawingManager(this, 6, HANDLE_PRESSURE_CHANGE);
     }
 
     public DrawableView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
-        drawingManager = new DrawingManager(this, 6);
+        drawingManager = new DrawingManager(this, 6, HANDLE_PRESSURE_CHANGE);
     }
 
     public DrawableView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        drawingManager = new DrawingManager(this, 6);
+        drawingManager = new DrawingManager(this, 6, HANDLE_PRESSURE_CHANGE);
     }
 
     @Override
