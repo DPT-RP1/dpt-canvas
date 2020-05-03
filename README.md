@@ -40,10 +40,10 @@ It turns out that the device is able to sense pressure like most of its competit
 Looking for maths/geometry geniuses who can find a less naive way to make it look and animate
 nicely, I don't care too much for it myself. Here is what the app looks like with pressure handling:
 
+![Pressure Handling](doc/pressure-senstive.png)
+
 ## TODO:
 * Make pressure animate
 * See if can draw the eraser circle fast enough
 * Store / retrieve context-based anotation
 * Make the eraser stroke-based like Sony
-
-![Pressure Handling](doc/pressure-senstive.png)
