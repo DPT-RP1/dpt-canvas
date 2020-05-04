@@ -18,17 +18,17 @@ public class DrawableView extends ConstraintLayout {
 
     public DrawableView(Context context) {
         super(context);
-        drawingManager = new DrawingManager(this, 6, HANDLE_PRESSURE_CHANGE);
+        drawingManager = new DrawingManager(this, BASE_STROKE_SIZE, HANDLE_PRESSURE_CHANGE);
     }
 
     public DrawableView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
-        drawingManager = new DrawingManager(this, 6, HANDLE_PRESSURE_CHANGE);
+        drawingManager = new DrawingManager(this, BASE_STROKE_SIZE, HANDLE_PRESSURE_CHANGE);
     }
 
     public DrawableView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        drawingManager = new DrawingManager(this, 6, HANDLE_PRESSURE_CHANGE);
+        drawingManager = new DrawingManager(this, BASE_STROKE_SIZE, HANDLE_PRESSURE_CHANGE);
     }
 
     @Override
@@ -38,12 +38,11 @@ public class DrawableView extends ConstraintLayout {
     }
 
     @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        return drawingManager.onTouchEvent(event);
-    }
-
-    @Override
     public void invalidate(Rect dirty) {
         drawingManager.invalidate(dirty);
+    }
+
+    public DrawingManager drawingManager() {
+        return drawingManager;
     }
 }

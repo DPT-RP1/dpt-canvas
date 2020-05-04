@@ -9,6 +9,8 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
+import com.sony.dpt.drawing.DrawableView;
+
 public class FirstFragment extends Fragment {
 
     @Override
@@ -26,6 +28,12 @@ public class FirstFragment extends Fragment {
         view.findViewById(R.id.button_first).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if (getActivity() != null) {
+                    ((DrawableView) getActivity().findViewById(R.id.drawable_view))
+                            .drawingManager()
+                            .pressureSensitive(true);
+                }
+
                 NavHostFragment.findNavController(FirstFragment.this)
                         .navigate(R.id.action_FirstFragment_to_SecondFragment);
             }

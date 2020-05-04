@@ -39,10 +39,11 @@ public class StrikeDelegate extends AbstractDrawingDelegate {
         paint.setAntiAlias(false);
         paint.setDither(false);
         paint.setStyle(STROKE);
-        paint.setStrokeWidth((float) strokeWidth);
+        paint.setStrokeWidth(strokeWidth);
 
         currentPath = new Path();
 
+        // TODO: so does that mean there can only be one ?
         epdUtil.addDhwArea(
                 new Rect(
                         0,
@@ -91,7 +92,7 @@ public class StrikeDelegate extends AbstractDrawingDelegate {
 
         // We inset by the stroke width so that the invalidation also encompass the full width of the line
         invalidationRectangle.inset(-currentStrokeWidth, -currentStrokeWidth);
-        view.invalidate(invalidationRectangle);
+        invalidate(invalidationRectangle);
         resetInvalidation();
     }
 
@@ -130,13 +131,20 @@ public class StrikeDelegate extends AbstractDrawingDelegate {
         ViewOverride.invalidate(view, dirty, UPDATE_MODE_NOWAIT_NOCONVERT_DU_SP1_IGNORE);
     }
 
-    // BETA - This is not fully understood
-    public void changeStrokeWidth(final int newWidth) {
-        this.strokeWidth = newWidth;
-        epdUtil.changeDhwStrokeWidth((int) newWidth, (int) newWidth);
+    @Override
+    public boolean pressureSensitive() {
+        return false;
     }
 
-    public int getStrokeWidth() {
+    @Override
+    public void setPenWidth(int penWidth) {
+        this.strokeWidth = penWidth;
+        paint.setStrokeWidth(penWidth);
+        // TODO: test: epdUtil.changeDhwStrokeWidth(penWidth, penWidth);
+    }
+
+    @Override
+    public int penWidth() {
         return strokeWidth;
     }
 

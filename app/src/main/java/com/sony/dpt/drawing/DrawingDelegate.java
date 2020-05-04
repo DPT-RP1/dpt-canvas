@@ -11,4 +11,10 @@ public interface DrawingDelegate {
     boolean onTouchEvent(MotionEvent event);
 
     void invalidate(Rect dirty);
+
+    boolean pressureSensitive();
+
+    void setPenWidth(int penWidth);
+
+    int penWidth();
 }

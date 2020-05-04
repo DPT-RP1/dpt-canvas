@@ -15,20 +15,21 @@ public class DrawingManager implements DrawingDelegate {
     private Bitmap cachedLayer;
     private Canvas drawCanvas;
     private DrawingDelegate strikeDelegate;
+    private DrawingDelegate pressureStrikeDelegate;
+    private DrawingDelegate currentStrikeDelegate;
+
     private DrawingDelegate eraserDelegate;
     private DrawingDelegate currentDelegate;
 
-    private int strokeWidth;
-
     public DrawingManager(final View view,
-                          final int strokeWidth,
+                          final int penWidth,
                           final boolean handlePressureChanges) {
         this.view = view;
-        this.strokeWidth = strokeWidth;
-        init(handlePressureChanges);
+        init(penWidth, handlePressureChanges);
+        setListeners();
     }
 
-    public void init(final boolean handlePressureChanges) {
+    public void init(final int penWidth, final boolean handlePressureChanges) {
         final ViewTreeObserver viewTreeObserver = view.getViewTreeObserver();
         if (viewTreeObserver.isAlive()) {
             viewTreeObserver.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
@@ -43,22 +44,37 @@ public class DrawingManager implements DrawingDelegate {
                     // then being rendered to the view
                     drawCanvas = new Canvas(cachedLayer);
 
-                    StrikeDelegate simpleStrikeDelegate = new StrikeDelegate(strokeWidth, view, cachedLayer, drawCanvas);
+                    StrikeDelegate simpleStrikeDelegate = new StrikeDelegate(penWidth, view, cachedLayer, drawCanvas);
+                    strikeDelegate = simpleStrikeDelegate;
+
+                    pressureStrikeDelegate =  new PressureSensitiveStrikeDelegate(simpleStrikeDelegate);
+
+                    eraserDelegate = new EraserDelegate(20, view, cachedLayer, drawCanvas);
+
                     if (handlePressureChanges) {
-                        strikeDelegate = new PressureSensitiveStrikeDelegate(simpleStrikeDelegate);
+                        currentStrikeDelegate = pressureStrikeDelegate;
                     } else {
-                        strikeDelegate = simpleStrikeDelegate;
+                        currentStrikeDelegate = strikeDelegate;
                     }
-
-                    eraserDelegate = new EraserDelegate(view, cachedLayer, drawCanvas);
-
-                    currentDelegate = strikeDelegate;
+                    currentDelegate = currentStrikeDelegate;
                 }
             });
         }
 
         view.setWillNotDraw(false);
     }
+
+
+    private void setListeners() {
+        view.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View that, MotionEvent event) {
+                return onTouchEvent(event);
+            }
+        });
+    }
+
+
 
     public void onDraw(Canvas canvas) {
         currentDelegate.onDraw(canvas);
@@ -70,13 +86,13 @@ public class DrawingManager implements DrawingDelegate {
 
         if(event.isButtonPressed(MotionEvent.BUTTON_SECONDARY)) {
             // HIGHLIGHTING;
-            currentDelegate = strikeDelegate;
+            currentDelegate = currentStrikeDelegate;
         } else if (event.isButtonPressed(MotionEvent.BUTTON_TERTIARY)) {
             // ERASING;
             currentDelegate = eraserDelegate;
         } else {
             // STRIKING;
-            currentDelegate = strikeDelegate;
+            currentDelegate = currentStrikeDelegate;
         }
 
         return currentDelegate.onTouchEvent(event);
@@ -86,5 +102,41 @@ public class DrawingManager implements DrawingDelegate {
     public void invalidate(Rect dirty) {
         currentDelegate.invalidate(dirty);
     }
+
+    private int savedStrikePenWidth;
+
+    /**
+     * Sets the pressure sensitive mode to true for all strike, eraser and highlight delegates.
+     * Keeps the previous fixed width to restore later.
+     * @param enable True to activate pressure sensitivity
+     */
+    public void pressureSensitive(boolean enable) {
+        if (enable) {
+            savedStrikePenWidth = strikeDelegate.penWidth();
+            currentStrikeDelegate = pressureStrikeDelegate;
+        } else {
+            if (savedStrikePenWidth > 0) {
+                strikeDelegate.setPenWidth(savedStrikePenWidth);
+            }
+            savedStrikePenWidth = 0;
+            currentStrikeDelegate = strikeDelegate;
+        }
+    }
+
+    public boolean pressureSensitive() {
+        return currentDelegate.pressureSensitive();
+    }
+
+    @Override
+    public void setPenWidth(int penWidth) {
+        currentDelegate.setPenWidth(penWidth);
+    }
+
+    @Override
+    public int penWidth() {
+        return currentDelegate.penWidth();
+    }
+
+
 
 }

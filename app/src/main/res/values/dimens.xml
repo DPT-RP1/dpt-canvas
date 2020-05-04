@@ -1,4 +1,5 @@
 <resources>
     <dimen name="fab_margin">16dp</dimen>
     <dimen name="font_size">160px</dimen>
+    <dimen name="font_size_small">80px</dimen>
 </resources>

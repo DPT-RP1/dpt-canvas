@@ -1,16 +1,9 @@
 package com.sony.dpt.drawing;
 
 import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.graphics.Path;
 import android.graphics.Rect;
 import android.view.MotionEvent;
 
-import com.sony.dpt.override.ViewOverride;
-
-import static android.graphics.Color.BLACK;
-import static android.graphics.Paint.Style.STROKE;
-import static com.sony.dpt.override.UpdateMode.UPDATE_MODE_NOWAIT_NOCONVERT_DU_SP1_IGNORE;
 
 /**
  * This can sense pressure change in the Sony Pen / DPT RP1 matrix
@@ -25,12 +18,12 @@ public class PressureSensitiveStrikeDelegate implements DrawingDelegate {
 
     private final StrikeDelegate strikeDelegate;
 
-    private final float baseWidth;
-    private float currentWidth;
+    private final int baseWidth;
+    private int currentWidth;
 
     public PressureSensitiveStrikeDelegate(final StrikeDelegate strikeDelegate) {
         this.strikeDelegate = strikeDelegate;
-        this.baseWidth = strikeDelegate.getStrokeWidth();
+        this.baseWidth = strikeDelegate.penWidth();
         this.currentWidth = this.baseWidth;
     }
 
@@ -44,9 +37,9 @@ public class PressureSensitiveStrikeDelegate implements DrawingDelegate {
         // We renormalize the pressure: 0.5 is "normal"
         float multiplier = pressure / 0.5f;
 
-        this.currentWidth = baseWidth * multiplier;
+        this.currentWidth = (int) (baseWidth * multiplier);
         if (this.currentWidth < 1) this.currentWidth = 1;
-        strikeDelegate.getStrokePaint().setStrokeWidth(currentWidth);
+        strikeDelegate.setPenWidth(currentWidth);
 
         return strikeDelegate.onTouchEvent(event);
     }
@@ -54,5 +47,20 @@ public class PressureSensitiveStrikeDelegate implements DrawingDelegate {
     @Override
     public void invalidate(Rect dirty) {
         strikeDelegate.invalidate(dirty);
+    }
+
+    @Override
+    public boolean pressureSensitive() {
+        return true;
+    }
+
+    @Override
+    public void setPenWidth(int penWidth) {
+        strikeDelegate.setPenWidth(penWidth);
+    }
+
+    @Override
+    public int penWidth() {
+        return strikeDelegate.penWidth();
     }
 }
