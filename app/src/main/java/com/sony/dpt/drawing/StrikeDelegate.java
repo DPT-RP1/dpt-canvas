@@ -52,7 +52,7 @@ public class StrikeDelegate extends AbstractDrawingDelegate {
                         view.getHeight()
                 ),
                 strokeWidth,
-                0
+                view.getWidth() > view.getHeight() ? 0 : 1
         );
     }
 
