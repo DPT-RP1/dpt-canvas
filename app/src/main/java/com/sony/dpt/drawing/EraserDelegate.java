@@ -47,18 +47,25 @@ public class EraserDelegate extends AbstractDrawingDelegate {
 
     private void setRectToCurrentPoint(Rect rect) {
         rect.set(
-                (int)lastX - eraserRadius,
+                (int) lastX - eraserRadius,
                 (int) lastY - eraserRadius,
                 (int) lastX + eraserRadius,
                 (int) lastY + eraserRadius
         );
     }
 
-    private void handleMotion(final MotionEvent event) {
-        lastX = event.getX();
-        lastY = event.getY();
+    private void handleInvalidation(float x, float y) {
+        lastX = x;
+        lastY = y;
         setRectToCurrentPoint(invalidationRectangle);
         finalEraseInvalidationRectangle.union(invalidationRectangle);
+    }
+
+    private void handleMotion(final MotionEvent event) {
+        for (int i = 0; i < event.getHistorySize(); i++) {
+            handleInvalidation(event.getHistoricalX(i), event.getHistoricalY(i));
+        }
+        handleInvalidation(event.getX(), event.getY());
 
         invalidate(invalidationRectangle);
     }
@@ -76,6 +83,8 @@ public class EraserDelegate extends AbstractDrawingDelegate {
 
         switch(action) {
             case MotionEvent.ACTION_DOWN:
+                lastX = event.getX();
+                lastY = event.getY();
                 setRectToCurrentPoint(finalEraseInvalidationRectangle);
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
