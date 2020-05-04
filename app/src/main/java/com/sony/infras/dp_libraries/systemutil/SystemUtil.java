@@ -11,8 +11,16 @@ public class SystemUtil {
     private static SystemUtil.EpdUtil epdUtil;
     private static final SystemUtil systemUtil;
 
+    private static boolean emulatorMode = false;
+
     static {
-        System.loadLibrary("SystemUtil");
+        try {
+            System.loadLibrary("SystemUtil");
+        } catch (Throwable ignored) {
+            // We will run in emulator mode
+            emulatorMode = true;
+            System.err.println("An attempt to load the Sony /system/lib/libSystemUtil.so failed on this device, we will load the emulator mode");
+        }
         systemUtil = new SystemUtil();
     }
 
@@ -42,10 +50,13 @@ public class SystemUtil {
     // Quirky Sony plumbing to get through the policy
 
     private SystemUtil.EpdUtil getEpdUtil() {
-        if (epdUtil == null) {
+        if (epdUtil != null) return epdUtil;
+
+        if (emulatorMode) {
+            epdUtil = new SystemUtil.EmulatedEpdUtil();
+        } else {
             epdUtil = new SystemUtil.EpdUtil();
         }
-
         return epdUtil;
     }
 
@@ -74,6 +85,25 @@ public class SystemUtil {
             }
 
             return width;
+        }
+    }
+
+    public class EmulatedEpdUtil extends EpdUtil {
+        public EmulatedEpdUtil() {
+        }
+
+        public int addDhwArea(Rect area, int penWidth, int orientation) {
+            System.err.println("A Direct Handwritting Area was created, but not native call available in this device. We will do nothing.");
+            return 0;
+        }
+
+        public void setDhwState(boolean enabled) {
+            System.err.println("A Direct Handwritting Area was activated/disabled, but not native call available in this device. We will do nothing.");
+        }
+
+        public int changeDhwStrokeWidth(int width, int unknown) {
+            System.err.println("A Direct Handwritting Stroke width was changed, but not native call available in this device. We will do nothing");
+            return 0;
         }
     }
 

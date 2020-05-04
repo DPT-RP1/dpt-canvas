@@ -8,8 +8,6 @@ import android.graphics.Rect;
 import android.view.MotionEvent;
 import android.view.View;
 
-import com.sony.dpt.override.ViewOverride;
-
 import static android.graphics.Color.BLACK;
 import static android.graphics.Paint.Style.STROKE;
 import static com.sony.dpt.override.UpdateMode.UPDATE_MODE_NOWAIT_NOCONVERT_DU_SP1_IGNORE;
@@ -128,7 +126,7 @@ public class StrikeDelegate extends AbstractDrawingDelegate {
 
     @Override
     public void invalidate(Rect dirty) {
-        ViewOverride.invalidate(view, dirty, UPDATE_MODE_NOWAIT_NOCONVERT_DU_SP1_IGNORE);
+        viewOverride.invalidate(view, dirty, UPDATE_MODE_NOWAIT_NOCONVERT_DU_SP1_IGNORE);
     }
 
     @Override

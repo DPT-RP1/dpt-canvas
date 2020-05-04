@@ -7,6 +7,8 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
 
+import com.sony.infras.dp_libraries.systemutil.SystemUtil;
+
 import static android.graphics.Bitmap.Config.ARGB_8888;
 
 public class DrawingManager implements DrawingDelegate {
@@ -21,12 +23,26 @@ public class DrawingManager implements DrawingDelegate {
     private DrawingDelegate eraserDelegate;
     private DrawingDelegate currentDelegate;
 
+    private static int INTERESTING_TOOL_TYPE = MotionEvent.TOOL_TYPE_STYLUS;
+
     public DrawingManager(final View view,
                           final int penWidth,
                           final boolean handlePressureChanges) {
         this.view = view;
+
+        // This allows for non-stylus compatibility (emulator for ex.)
+        detectEmulator();
         init(penWidth, handlePressureChanges);
         setListeners();
+    }
+
+    /**
+     * This deactivate Stylus enforcement on the emulator.
+     */
+    private void detectEmulator() {
+        if (SystemUtil.getEpdUtilInstance() instanceof SystemUtil.EmulatedEpdUtil) {
+            INTERESTING_TOOL_TYPE = MotionEvent.TOOL_TYPE_FINGER;
+        }
     }
 
     public void init(final int penWidth, final boolean handlePressureChanges) {
@@ -82,7 +98,7 @@ public class DrawingManager implements DrawingDelegate {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if (event.getToolType(0) != MotionEvent.TOOL_TYPE_STYLUS) return false;
+        if (event.getToolType(0) != INTERESTING_TOOL_TYPE) return false;
 
         if(event.isButtonPressed(MotionEvent.BUTTON_SECONDARY)) {
             // HIGHLIGHTING;

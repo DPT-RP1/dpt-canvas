@@ -4,10 +4,11 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.util.AttributeSet;
-import android.view.MotionEvent;
 
 import androidx.annotation.Nullable;
 import androidx.constraintlayout.widget.ConstraintLayout;
+
+import com.sony.dpt.override.ViewOverride;
 
 public class DrawableView extends ConstraintLayout {
 
@@ -15,6 +16,7 @@ public class DrawableView extends ConstraintLayout {
 
     private static final int BASE_STROKE_SIZE = 6;
     private static final boolean HANDLE_PRESSURE_CHANGE = false;
+    private static final boolean emulatoreMode = !ViewOverride.getInstance().isLoaded();
 
     public DrawableView(Context context) {
         super(context);
@@ -39,7 +41,11 @@ public class DrawableView extends ConstraintLayout {
 
     @Override
     public void invalidate(Rect dirty) {
-        drawingManager.invalidate(dirty);
+        if (emulatoreMode) {
+            super.invalidate();
+        } else {
+            drawingManager.invalidate(dirty);
+        }
     }
 
     public DrawingManager drawingManager() {

@@ -9,12 +9,11 @@ import android.graphics.Rect;
 import android.view.MotionEvent;
 import android.view.View;
 
-import com.sony.dpt.override.ViewOverride;
+import static com.sony.dpt.override.UpdateMode.UPDATE_MODE_NOWAIT_GC16_PARTIAL_SP1_SP2;
+import static com.sony.dpt.override.UpdateMode.UPDATE_MODE_NOWAIT_NOCONVERT_DU_SP1_IGNORE;
 
 // Slow erase
-import static com.sony.dpt.override.UpdateMode.UPDATE_MODE_NOWAIT_GC16_PARTIAL_SP1_SP2;
 // Fast erase
-import static com.sony.dpt.override.UpdateMode.UPDATE_MODE_NOWAIT_NOCONVERT_DU_SP1_IGNORE;
 
 /**
  * This is in charge of erasing on a view
@@ -27,12 +26,12 @@ public class EraserDelegate extends AbstractDrawingDelegate {
 
     private Paint eraserPaint;
     private int eraserRadius;
-    private Rect finalEraseIinvalidationRectangle;
+    private Rect finalEraseInvalidationRectangle;
 
     public EraserDelegate(int eraserWidth, final View view, Bitmap cachedLayer, Canvas drawCanvas) {
         super(view, cachedLayer, drawCanvas);
         this.eraserRadius = eraserWidth;
-        this.finalEraseIinvalidationRectangle = new Rect();
+        this.finalEraseInvalidationRectangle = new Rect();
         init();
     }
 
@@ -59,7 +58,7 @@ public class EraserDelegate extends AbstractDrawingDelegate {
         lastX = event.getX();
         lastY = event.getY();
         setRectToCurrentPoint(invalidationRectangle);
-        finalEraseIinvalidationRectangle.union(invalidationRectangle);
+        finalEraseInvalidationRectangle.union(invalidationRectangle);
 
         invalidate(invalidationRectangle);
     }
@@ -77,11 +76,11 @@ public class EraserDelegate extends AbstractDrawingDelegate {
 
         switch(action) {
             case MotionEvent.ACTION_DOWN:
-                setRectToCurrentPoint(finalEraseIinvalidationRectangle);
+                setRectToCurrentPoint(finalEraseInvalidationRectangle);
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
-                invalidatePartialGC16(finalEraseIinvalidationRectangle);
-                finalEraseIinvalidationRectangle.setEmpty();
+                invalidatePartialGC16(finalEraseInvalidationRectangle);
+                finalEraseInvalidationRectangle.setEmpty();
                 break;
         }
 
@@ -90,11 +89,11 @@ public class EraserDelegate extends AbstractDrawingDelegate {
 
     @Override
     public void invalidate(Rect dirty) {
-        ViewOverride.invalidate(view, dirty, UPDATE_MODE_NOWAIT_NOCONVERT_DU_SP1_IGNORE);
+        viewOverride.invalidate(view, dirty, UPDATE_MODE_NOWAIT_NOCONVERT_DU_SP1_IGNORE);
     }
 
     public void invalidatePartialGC16(Rect dirty) {
-        ViewOverride.invalidate(view, dirty, UPDATE_MODE_NOWAIT_GC16_PARTIAL_SP1_SP2);
+        viewOverride.invalidate(view, dirty, UPDATE_MODE_NOWAIT_GC16_PARTIAL_SP1_SP2);
     }
 
     @Override
