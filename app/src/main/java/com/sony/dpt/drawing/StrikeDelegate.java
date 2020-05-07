@@ -3,10 +3,15 @@ package com.sony.dpt.drawing;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.graphics.Path;
+import android.graphics.PointF;
 import android.graphics.Rect;
 import android.view.MotionEvent;
 import android.view.View;
+
+import com.sony.dpt.drawing.strokes.SimpleStroke;
+import com.sony.dpt.drawing.strokes.SimpleStrokeContainer;
+import com.sony.dpt.drawing.strokes.Stroke;
+import com.sony.dpt.drawing.strokes.StrokesContainer;
 
 import static android.graphics.Color.BLACK;
 import static android.graphics.Paint.Style.STROKE;
@@ -17,7 +22,6 @@ import static com.sony.dpt.override.UpdateMode.UPDATE_MODE_NOWAIT_NOCONVERT_DU_S
  */
 public class StrikeDelegate extends AbstractDrawingDelegate {
 
-    private Path currentPath;
     private Paint paint;
 
     private float lastX;
@@ -25,9 +29,13 @@ public class StrikeDelegate extends AbstractDrawingDelegate {
 
     private int strokeWidth;
 
+    private Stroke currentStroke;
+    private StrokesContainer strokesContainer;
+
     public StrikeDelegate(final int strokeWidth, final View view, final Bitmap cachedLayer, final Canvas drawCanvas) {
         super(view, cachedLayer, drawCanvas);
         this.strokeWidth = strokeWidth;
+        this.strokesContainer = new SimpleStrokeContainer();
         init();
     }
 
@@ -38,8 +46,6 @@ public class StrikeDelegate extends AbstractDrawingDelegate {
         paint.setDither(false);
         paint.setStyle(STROKE);
         paint.setStrokeWidth(strokeWidth);
-
-        currentPath = new Path();
 
         // TODO: so does that mean there can only be one ?
         epdUtil.addDhwArea(
@@ -54,44 +60,27 @@ public class StrikeDelegate extends AbstractDrawingDelegate {
         );
     }
 
-    private void resetPath() {
-        currentPath.reset();
-        currentPath.moveTo(lastX, lastY);
-    }
-
-    private void resetInvalidation() {
-        invalidationRectangle.set(
-                (int) lastX,
-                (int) lastY,
-                (int) lastX,
-                (int) lastY
-        );
-    }
-
-    private void updatePath(final float x, final float y) {
-        lastX = x;
-        lastY = y;
-        invalidationRectangle.union((int) lastX, (int) lastY);
-        currentPath.lineTo(lastX, lastY);
-    }
-
     private void handleMotion(final MotionEvent event) {
         int historySize = event.getHistorySize();
         for (int i = 0; i < historySize; i++) {
-            updatePath(event.getHistoricalX(i), event.getHistoricalY(i));
+            currentStroke.addPoint(event.getHistoricalX(i), event.getHistoricalY(i));
         }
-        updatePath(event.getX(), event.getY());
 
-        drawCanvas.drawPath(currentPath, paint);
-        resetPath();
+        currentStroke.addPoint(new PointF(event.getX(), event.getY()));
+
+        drawCanvas.drawPath(currentStroke.getPath(), paint);
 
         // Fast ceil
         int currentStrokeWidth = (int) paint.getStrokeWidth() + 1;
 
         // We inset by the stroke width so that the invalidation also encompass the full width of the line
-        invalidationRectangle.inset(-currentStrokeWidth, -currentStrokeWidth);
-        invalidate(invalidationRectangle);
-        resetInvalidation();
+        Rect boundingBox = new Rect(currentStroke.getBoundingBox());
+        boundingBox.inset(-currentStrokeWidth, -currentStrokeWidth);
+        invalidate(boundingBox);
+
+        strokesContainer.addDrawingStroke(currentStroke);
+        currentStroke = new SimpleStroke(currentStroke.getLastPoint());
+
     }
 
     public void onDraw(Canvas canvas) {
@@ -103,13 +92,15 @@ public class StrikeDelegate extends AbstractDrawingDelegate {
     public boolean onTouchEvent(MotionEvent event) {
         int action = event.getActionMasked();
 
-        switch(action) {
+        // Initialize the stroke. It can happen during a button switch between erasing and drawing
+        if (currentStroke == null) {
+            currentStroke = new SimpleStroke(new PointF(event.getX(), event.getY()));
+        }
+
+        switch (action) {
             case MotionEvent.ACTION_DOWN:
                 epdUtil.setDhwState(true);
-                lastX = event.getX();
-                lastY = event.getY();
-                resetPath();
-                resetInvalidation();
+
                 break;
             case MotionEvent.ACTION_MOVE:
                 handleMotion(event);
@@ -117,8 +108,8 @@ public class StrikeDelegate extends AbstractDrawingDelegate {
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
                 handleMotion(event);
-                resetInvalidation();
-                epdUtil.setDhwState(false);
+                currentStroke = null;
+                strokesContainer.persistDrawing();
                 break;
         }
         return true;
