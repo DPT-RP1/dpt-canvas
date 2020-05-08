@@ -2,6 +2,8 @@ package com.sony.dpt.drawing;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.PointF;
+import android.view.MotionEvent;
 import android.view.View;
 
 import com.sony.dpt.override.IViewOverride;
@@ -19,15 +21,35 @@ public abstract class AbstractDrawingDelegate implements DrawingDelegate {
     protected final View view;
     protected SystemUtil.EpdUtil epdUtil;
 
+    protected PointF lastPosition;
+
     protected static IViewOverride viewOverride;
 
     protected AbstractDrawingDelegate(final View view, Bitmap cachedLayer, Canvas drawCanvas) {
         this.cachedLayer = cachedLayer;
         this.drawCanvas = drawCanvas;
         this.view = view;
+        this.lastPosition = new PointF();
 
         epdUtil = SystemUtil.getEpdUtilInstance();
 
         if (viewOverride == null) viewOverride = ViewOverride.getInstance();
+    }
+
+    public PointF lastPosition() {
+        lastPosition.set(lastX, lastY);
+        return lastPosition;
+    }
+
+    public void onDraw(Canvas canvas) {
+        canvas.drawBitmap(cachedLayer, 0.0F, 0.0F, null);
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        lastX = event.getX();
+        lastY = event.getY();
+        lastPosition.set(lastX, lastY);
+        return false;
     }
 }

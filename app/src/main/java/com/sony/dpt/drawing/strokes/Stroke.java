@@ -4,15 +4,9 @@ import android.graphics.Path;
 import android.graphics.PointF;
 import android.graphics.Rect;
 
-import java.util.Collection;
+import com.sony.dpt.drawing.geom.Circle;
 
 public interface Stroke {
-
-    void addPoint(final PointF p);
-
-    void addPoint(final float x, final float y);
-
-    Collection<PointF> getPoints();
 
     /**
      * Returns a bounding box containing all the points of this stroke.
@@ -29,11 +23,9 @@ public interface Stroke {
      */
     Path getPath();
 
-    /**
-     * End points of the stroke
-     *
-     * @return
-     */
-    PointF getLastPoint();
+    boolean collides(Circle circle);
 
+    void addPoint(PointF pointF);
+
+    void addPoint(float x, float y);
 }

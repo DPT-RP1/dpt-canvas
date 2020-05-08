@@ -1,34 +1,34 @@
-package com.sony.dpt.drawing;
+package com.sony.dpt.drawing.strokes;
 
 import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.PointF;
 import android.graphics.Rect;
 import android.view.MotionEvent;
-
 
 /**
  * This can sense pressure change in the Sony Pen / DPT RP1 matrix
  * This is naive and not even implemented by Sony
- *
+ * <p>
  * TODO:
- *   - Better transitioning into different pressure
- *   - Make clear threshold
- *   - Find example of working pressure math
+ * - Better transitioning into different pressure
+ * - Make clear threshold
+ * - Find example of working pressure math
  */
-public class PressureSensitiveStrikeDelegate implements DrawingDelegate {
+public class PressureSensitiveStrikeDelegate implements StrikeDelegate {
 
-    private final StrikeDelegate strikeDelegate;
+    private final SimpleStrikeDelegate strikeDelegate;
 
     private final int baseWidth;
     private int currentWidth;
 
-    public PressureSensitiveStrikeDelegate(final StrikeDelegate strikeDelegate) {
+    public PressureSensitiveStrikeDelegate(final SimpleStrikeDelegate strikeDelegate) {
         this.strikeDelegate = strikeDelegate;
         this.baseWidth = strikeDelegate.penWidth();
         this.currentWidth = this.baseWidth;
     }
 
     public void onDraw(Canvas canvas) {
-
         strikeDelegate.onDraw(canvas);
     }
 
@@ -62,5 +62,20 @@ public class PressureSensitiveStrikeDelegate implements DrawingDelegate {
     @Override
     public int penWidth() {
         return strikeDelegate.penWidth();
+    }
+
+    @Override
+    public PointF lastPosition() {
+        return strikeDelegate.lastPosition();
+    }
+
+    @Override
+    public Paint getPaint() {
+        return strikeDelegate.getPaint();
+    }
+
+    @Override
+    public StrokesContainer getStrokesContainer() {
+        return strikeDelegate.getStrokesContainer();
     }
 }

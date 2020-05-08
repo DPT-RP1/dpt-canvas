@@ -1,24 +1,20 @@
 package com.sony.dpt.drawing.strokes;
 
-import android.graphics.Path;
-import android.graphics.Rect;
-
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.LinkedList;
 import java.util.List;
 
 public class SimpleStrokeContainer implements StrokesContainer {
 
-    private Path path;
     private List<Stroke> strokes;
-    private float penWidth;
-
     private List<Stroke> currentlyDrawing;
+    private long lastPersistTimeMs;
 
     public SimpleStrokeContainer() {
-        this.strokes = new LinkedList<Stroke>();
-        this.currentlyDrawing = new LinkedList<Stroke>();
+        this.strokes = new ArrayList<Stroke>();
+        this.currentlyDrawing = new ArrayList<Stroke>();
+        this.lastPersistTimeMs = 0;
     }
 
     @Override
@@ -27,9 +23,19 @@ public class SimpleStrokeContainer implements StrokesContainer {
     }
 
     @Override
-    public void persistDrawing() {
-        this.strokes.addAll(this.currentlyDrawing);
-        this.currentlyDrawing.clear();
+    public Stroke persistDrawing() {
+        Stroke result;
+        long persistTime = System.currentTimeMillis();
+        if (persistTime - lastPersistTimeMs < 100) {
+            // We're still drawing a stroke, let's continue on the same one
+            result = this.currentlyDrawing.get(this.currentlyDrawing.size() - 1);
+        } else {
+            this.strokes.addAll(this.currentlyDrawing);
+            this.currentlyDrawing.clear();
+            result = null;
+        }
+        this.lastPersistTimeMs = persistTime;
+        return result;
     }
 
     @Override
@@ -48,10 +54,6 @@ public class SimpleStrokeContainer implements StrokesContainer {
         this.strokes.clear();
     }
 
-    @Override
-    public Collection<Stroke> findIntersect(Rect boundingBox) {
-        return null;
-    }
 
     @Override
     public Collection<Stroke> getAll() {

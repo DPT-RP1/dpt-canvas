@@ -3,42 +3,28 @@ package com.sony.dpt.drawing.strokes;
 import android.graphics.Path;
 import android.graphics.PointF;
 import android.graphics.Rect;
+import android.graphics.RectF;
+import android.graphics.Region;
 
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
+import com.sony.dpt.drawing.geom.Circle;
 
 public class SimpleStroke implements Stroke {
 
-    private final List<PointF> points;
-    private Rect boundingBox;
-    private Path path;
-    private PointF lastPoint;
+    private final Rect boundingBox;
+    private final Path path;
+    private final RectF tempRectF;
+    private final Path circlePath;
 
     public SimpleStroke(PointF init) {
-        points = new LinkedList<PointF>();
-        boundingBox = new Rect((int) init.x, (int) init.y, (int) init.x, (int) init.y);
+        this(init.x, init.y);
+    }
+
+    public SimpleStroke(float x, float y) {
+        boundingBox = new Rect((int) x, (int) y, (int) x, (int) y);
         path = new Path();
-        path.moveTo(init.x, init.y);
-        lastPoint = init;
-    }
-
-    @Override
-    public void addPoint(PointF p) {
-        boundingBox.union((int) p.x, (int) p.y);
-        points.add(p);
-        path.lineTo(p.x, p.y);
-        lastPoint = p;
-    }
-
-    @Override
-    public void addPoint(float x, float y) {
-        addPoint(new PointF(x, y));
-    }
-
-    @Override
-    public Collection<PointF> getPoints() {
-        return points;
+        path.moveTo(x, y);
+        tempRectF = new RectF();
+        circlePath = new Path();
     }
 
     @Override
@@ -52,7 +38,34 @@ public class SimpleStroke implements Stroke {
     }
 
     @Override
-    public PointF getLastPoint() {
-        return lastPoint;
+    public boolean collides(final Circle circle) {
+        Region clip = new Region(
+                boundingBox.left,
+                boundingBox.top,
+                boundingBox.right,
+                boundingBox.bottom
+        );
+
+        Region region1 = new Region();
+        region1.setPath(path, clip);
+
+        Region region2 = new Region();
+
+        circlePath.rewind();
+        circlePath.addCircle(circle.getCenter().x, circle.getCenter().y, circle.getRadius(), Path.Direction.CW);
+        region2.setPath(circlePath, clip);
+        return !region1.quickReject(region2) && region1.op(region2, Region.Op.INTERSECT);
     }
+
+    @Override
+    public void addPoint(PointF pointF) {
+        addPoint(pointF.x, pointF.y);
+    }
+
+    @Override
+    public void addPoint(float x, float y) {
+        path.lineTo(x, y);
+        boundingBox.union((int) x, (int) y);
+    }
+
 }

@@ -1,51 +1,47 @@
-package com.sony.dpt.drawing;
+package com.sony.dpt.drawing.eraser;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.PointF;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
-import android.graphics.Rect;
 import android.view.MotionEvent;
 import android.view.View;
 
-import static com.sony.dpt.override.UpdateMode.UPDATE_MODE_NOWAIT_GC16_PARTIAL_SP1_SP2;
-import static com.sony.dpt.override.UpdateMode.UPDATE_MODE_NOWAIT_NOCONVERT_DU_SP1_IGNORE;
+import com.sony.dpt.drawing.geom.Circle;
+import com.sony.dpt.drawing.strokes.StrikeDelegate;
+import com.sony.dpt.drawing.strokes.Stroke;
+import com.sony.dpt.drawing.strokes.StrokesContainer;
 
-// Slow erase
-// Fast erase
+import java.util.Collection;
+import java.util.Iterator;
 
 /**
- * This is in charge of erasing on a view
- * <p>
- * The best compromise is to erase quickly while the pen moves, summing the invalidation rectangles,
- * then pop a GC16 (Greyscale Clearing) partial at the end on an invalidation rectangle containing
- * everything cleared during the fast phase.
+ * The goal of this class is to extend the behaviour of the eraser to delete entire strokes
  */
-public class EraserDelegate extends AbstractDrawingDelegate {
+public class StrokeEraserDelegate extends AbstractEraserDelegate implements EraserDelegate {
 
-    private static final int CIRCLE_STROKE_WIDTH = 3;
+    private final StrikeDelegate strikeDelegate;
+    private final Circle eraser;
+    private Paint strokeEraserPaint;
+    private boolean isErasing = false;
 
     private Paint eraserPaint;
 
     private Paint circlePaint;
-    private int eraserRadius;
-    private Rect finalEraseInvalidationRectangle;
-    private Rect invalidationRectangle;
 
-    private Rect temp;
-    // This will be use to repaint the circle white
-    private Rect previousInvalidationRectangle;
-    private boolean isErasing = false;
 
-    public EraserDelegate(int eraserWidth, final View view, Bitmap cachedLayer, Canvas drawCanvas) {
+    public StrokeEraserDelegate(int eraserWidth,
+                                final View view, final Bitmap cachedLayer, final Canvas drawCanvas,
+                                final StrikeDelegate strikeDelegate) {
         super(view, cachedLayer, drawCanvas);
+
+        this.strikeDelegate = strikeDelegate;
+        this.eraser = new Circle();
         this.eraserRadius = eraserWidth;
-        this.finalEraseInvalidationRectangle = new Rect();
-        this.invalidationRectangle = new Rect();
-        this.previousInvalidationRectangle = new Rect();
-        this.temp = new Rect();
+
         init();
     }
 
@@ -63,21 +59,13 @@ public class EraserDelegate extends AbstractDrawingDelegate {
         circlePaint.setColor(Color.BLACK);
         circlePaint.setStyle(Paint.Style.STROKE);
         circlePaint.setStrokeWidth(CIRCLE_STROKE_WIDTH);
-    }
 
-    private void setRectToCurrentPoint(Rect rect) {
-        rect.set(
-                (int) lastX,
-                (int) lastY,
-                (int) lastX,
-                (int) lastY
-        );
-        rect.inset(-eraserRadius - CIRCLE_STROKE_WIDTH, -eraserRadius - CIRCLE_STROKE_WIDTH);
-    }
-
-    private void addToInvalidate(float x, float y) {
-        invalidationRectangle.union((int) x, (int) y);
-        finalEraseInvalidationRectangle.union((int) x, (int) y);
+        strokeEraserPaint = new Paint();
+        strokeEraserPaint.setAntiAlias(false);
+        strokeEraserPaint.setAlpha(0);
+        strokeEraserPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
+        strokeEraserPaint.setStyle(Paint.Style.STROKE);
+        strokeEraserPaint.setStrokeWidth(6f);
     }
 
     private void handleMotion(final MotionEvent event) {
@@ -85,9 +73,6 @@ public class EraserDelegate extends AbstractDrawingDelegate {
             addToInvalidate(event.getHistoricalX(i), event.getHistoricalY(i));
         }
         addToInvalidate(event.getX(), event.getY());
-
-        lastX = event.getX();
-        lastY = event.getY();
 
         // We redraw the part that we drew black last time.
         temp.set(invalidationRectangle);
@@ -97,25 +82,30 @@ public class EraserDelegate extends AbstractDrawingDelegate {
                 -eraserRadius - CIRCLE_STROKE_WIDTH,
                 -eraserRadius - CIRCLE_STROKE_WIDTH
         );
-        invalidate(temp);
-
         previousInvalidationRectangle.set(invalidationRectangle);
+        invalidationRectangle.set(temp);
+
+        drawCanvas.drawCircle(lastX, lastY, eraserRadius, eraserPaint);
+
+        detectCollisions();
+
+        invalidate(invalidationRectangle);
     }
 
+    @Override
     public void onDraw(Canvas canvas) {
-        drawCanvas.drawCircle(lastX, lastY, eraserRadius, eraserPaint);
-        canvas.drawBitmap(cachedLayer, 0.0F, 0.0F, null);
+        super.onDraw(canvas);
         if (isErasing) canvas.drawCircle(lastX, lastY, eraserRadius + 1, circlePaint);
     }
 
+    @Override
     public boolean onTouchEvent(MotionEvent event) {
         int action = event.getActionMasked();
         epdUtil.setDhwState(false);
         isErasing = true;
-        switch(action) {
+        super.onTouchEvent(event);
+        switch (action) {
             case MotionEvent.ACTION_DOWN:
-                lastX = event.getX();
-                lastY = event.getY();
                 setRectToCurrentPoint(finalEraseInvalidationRectangle);
                 setRectToCurrentPoint(invalidationRectangle);
                 setRectToCurrentPoint(previousInvalidationRectangle);
@@ -139,26 +129,47 @@ public class EraserDelegate extends AbstractDrawingDelegate {
     }
 
     @Override
-    public void invalidate(Rect dirty) {
-        viewOverride.invalidate(view, dirty, UPDATE_MODE_NOWAIT_NOCONVERT_DU_SP1_IGNORE);
-    }
-
-    public void invalidatePartialGC16(Rect dirty) {
-        viewOverride.invalidate(view, dirty, UPDATE_MODE_NOWAIT_GC16_PARTIAL_SP1_SP2);
-    }
-
-    @Override
-    public boolean pressureSensitive() {
-        return false;
-    }
-
-    @Override
     public void setPenWidth(int penWidth) {
-        this.eraserRadius = penWidth;
+        strokeEraserPaint.setStrokeWidth(penWidth);
     }
 
     @Override
-    public int penWidth() {
-        return eraserRadius;
+    public Paint getPaint() {
+        return strokeEraserPaint;
+    }
+
+    /**
+     * Finds a list of strokes currently colliding with the eraser shape, that we assume is
+     * a circle for now.
+     */
+    private void detectCollisions() {
+        final PointF eraserPosition = lastPosition();
+        final float eraserWidth = penWidth();
+
+        eraser.setCenter(eraserPosition);
+        eraser.setRadius(eraserWidth);
+
+        StrokesContainer strokesContainer = strikeDelegate.getStrokesContainer();
+        Collection<Stroke> candidates = strokesContainer.getAll();
+
+        int penWidth = strikeDelegate.penWidth();
+        strokeEraserPaint.setStrokeWidth(penWidth);
+
+        Iterator<Stroke> it = candidates.iterator();
+
+        while (it.hasNext()) {
+            Stroke candidate = it.next();
+            if (candidate.collides(eraser)) {
+                addToInvalidate(candidate.getBoundingBox(), penWidth);
+                drawCanvas.drawPath(candidate.getPath(), strokeEraserPaint);
+
+                it.remove();
+            }
+        }
+    }
+
+    @Override
+    public float getStrokeWidth() {
+        return strokeEraserPaint.getStrokeWidth();
     }
 }

@@ -1,7 +1,5 @@
 package com.sony.dpt.drawing.strokes;
 
-import android.graphics.Rect;
-
 import java.util.Collection;
 
 public interface StrokesContainer {
@@ -18,17 +16,13 @@ public interface StrokesContainer {
     /**
      * This saves the last draw strokes in the permanent strokes storage
      */
-    void persistDrawing();
+    Stroke persistDrawing();
 
     void addStrokes(final Stroke... strokes);
 
     void addStrokes(final Collection<Stroke> strokes);
 
     void clear();
-
-    Collection<Stroke> findIntersect(Rect boundingBox);
-
-    // Collection<Stroke> findInsersect(Circle boundingCircle);
 
     Collection<Stroke> getAll();
 }

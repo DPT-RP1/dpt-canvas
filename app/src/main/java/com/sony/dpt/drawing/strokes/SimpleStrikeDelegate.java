@@ -1,17 +1,14 @@
-package com.sony.dpt.drawing;
+package com.sony.dpt.drawing.strokes;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.graphics.PointF;
+import android.graphics.Path;
 import android.graphics.Rect;
 import android.view.MotionEvent;
 import android.view.View;
 
-import com.sony.dpt.drawing.strokes.SimpleStroke;
-import com.sony.dpt.drawing.strokes.SimpleStrokeContainer;
-import com.sony.dpt.drawing.strokes.Stroke;
-import com.sony.dpt.drawing.strokes.StrokesContainer;
+import com.sony.dpt.drawing.AbstractDrawingDelegate;
 
 import static android.graphics.Color.BLACK;
 import static android.graphics.Paint.Style.STROKE;
@@ -20,22 +17,25 @@ import static com.sony.dpt.override.UpdateMode.UPDATE_MODE_NOWAIT_NOCONVERT_DU_S
 /**
  * This is in charge of striking the pen on a view
  */
-public class StrikeDelegate extends AbstractDrawingDelegate {
+public class SimpleStrikeDelegate extends AbstractDrawingDelegate implements StrikeDelegate {
 
     private Paint paint;
-
-    private float lastX;
-    private float lastY;
 
     private int strokeWidth;
 
     private Stroke currentStroke;
     private StrokesContainer strokesContainer;
 
-    public StrikeDelegate(final int strokeWidth, final View view, final Bitmap cachedLayer, final Canvas drawCanvas) {
+    private final Rect boundingBox;
+
+    private final Path drawingPath;
+
+    public SimpleStrikeDelegate(final int strokeWidth, final View view, final Bitmap cachedLayer, final Canvas drawCanvas) {
         super(view, cachedLayer, drawCanvas);
         this.strokeWidth = strokeWidth;
         this.strokesContainer = new SimpleStrokeContainer();
+        this.boundingBox = new Rect();
+        this.drawingPath = new Path();
         init();
     }
 
@@ -63,44 +63,54 @@ public class StrikeDelegate extends AbstractDrawingDelegate {
     private void handleMotion(final MotionEvent event) {
         int historySize = event.getHistorySize();
         for (int i = 0; i < historySize; i++) {
-            currentStroke.addPoint(event.getHistoricalX(i), event.getHistoricalY(i));
+            float histX = event.getHistoricalX(i);
+            float histY = event.getHistoricalY(i);
+            currentStroke.addPoint(histX, histY);
+            drawingPath.lineTo(histX, histY);
+            boundingBox.union((int) histX, (int) histY);
         }
 
-        currentStroke.addPoint(new PointF(event.getX(), event.getY()));
+        boundingBox.union((int) lastY, (int) lastY);
+        currentStroke.addPoint(lastPosition);
+        drawingPath.lineTo(lastX, lastY);
 
-        drawCanvas.drawPath(currentStroke.getPath(), paint);
+        drawCanvas.drawPath(drawingPath, paint);
 
         // Fast ceil
         int currentStrokeWidth = (int) paint.getStrokeWidth() + 1;
 
+        drawingPath.rewind();
+        drawingPath.moveTo(lastX, lastY);
+
         // We inset by the stroke width so that the invalidation also encompass the full width of the line
-        Rect boundingBox = new Rect(currentStroke.getBoundingBox());
+
         boundingBox.inset(-currentStrokeWidth, -currentStrokeWidth);
         invalidate(boundingBox);
-
-        strokesContainer.addDrawingStroke(currentStroke);
-        currentStroke = new SimpleStroke(currentStroke.getLastPoint());
 
     }
 
     public void onDraw(Canvas canvas) {
-
         canvas.drawColor(-1);
-        canvas.drawBitmap(cachedLayer, 0.0F, 0.0F, null);
+        super.onDraw(canvas);
     }
 
+    @Override
     public boolean onTouchEvent(MotionEvent event) {
+        super.onTouchEvent(event);
         int action = event.getActionMasked();
 
-        // Initialize the stroke. It can happen during a button switch between erasing and drawing
+        boundingBox.set((int) lastX, (int) lastY, (int) lastX, (int) lastY);
+
         if (currentStroke == null) {
-            currentStroke = new SimpleStroke(new PointF(event.getX(), event.getY()));
+            currentStroke = new SimpleStroke(lastX, lastY);
+            strokesContainer.addDrawingStroke(currentStroke);
         }
 
         switch (action) {
             case MotionEvent.ACTION_DOWN:
                 epdUtil.setDhwState(true);
-
+                drawingPath.rewind();
+                drawingPath.moveTo(lastX, lastY);
                 break;
             case MotionEvent.ACTION_MOVE:
                 handleMotion(event);
@@ -108,8 +118,8 @@ public class StrikeDelegate extends AbstractDrawingDelegate {
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
                 handleMotion(event);
-                currentStroke = null;
-                strokesContainer.persistDrawing();
+                currentStroke = strokesContainer.persistDrawing();
+
                 break;
         }
         return true;
@@ -137,7 +147,13 @@ public class StrikeDelegate extends AbstractDrawingDelegate {
         return strokeWidth;
     }
 
-    public Paint getStrokePaint() {
+    @Override
+    public Paint getPaint() {
         return paint;
+    }
+
+    @Override
+    public StrokesContainer getStrokesContainer() {
+        return strokesContainer;
     }
 }
