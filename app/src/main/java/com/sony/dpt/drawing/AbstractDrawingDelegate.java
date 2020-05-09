@@ -3,12 +3,16 @@ package com.sony.dpt.drawing;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.PointF;
+import android.graphics.Rect;
 import android.view.MotionEvent;
 import android.view.View;
 
 import com.sony.dpt.override.IViewOverride;
 import com.sony.dpt.override.ViewOverride;
 import com.sony.infras.dp_libraries.systemutil.SystemUtil;
+
+import static com.sony.dpt.override.UpdateMode.UPDATE_MODE_NOWAIT_GC16_PARTIAL_SP1_SP2;
+import static com.sony.dpt.override.UpdateMode.UPDATE_MODE_NOWAIT_NOCONVERT_DU_SP1_IGNORE;
 
 public abstract class AbstractDrawingDelegate implements DrawingDelegate {
 
@@ -51,5 +55,18 @@ public abstract class AbstractDrawingDelegate implements DrawingDelegate {
         lastY = event.getY();
         lastPosition.set(lastX, lastY);
         return false;
+    }
+
+    @Override
+    public void invalidate(Rect dirty) {
+        viewOverride.invalidate(view, dirty, UPDATE_MODE_NOWAIT_NOCONVERT_DU_SP1_IGNORE);
+    }
+
+    public void invalidatePartialGC16(Rect dirty) {
+        viewOverride.invalidate(view, dirty, UPDATE_MODE_NOWAIT_GC16_PARTIAL_SP1_SP2);
+    }
+
+    public void invalidate(Rect dirty, int mode) {
+        viewOverride.invalidate(view, dirty, mode);
     }
 }

@@ -13,6 +13,7 @@ import com.sony.dpt.drawing.eraser.EraserDelegate;
 import com.sony.dpt.drawing.eraser.StrokeEraserDelegate;
 import com.sony.dpt.drawing.strokes.PressureSensitiveStrikeDelegate;
 import com.sony.dpt.drawing.strokes.SimpleStrikeDelegate;
+import com.sony.dpt.drawing.strokes.SimpleStrokeContainer;
 import com.sony.dpt.drawing.strokes.StrikeDelegate;
 import com.sony.infras.dp_libraries.systemutil.SystemUtil;
 
@@ -31,6 +32,9 @@ public class DrawingManager implements DrawingDelegate {
     private DrawingDelegate currentDelegate;
 
     private static int INTERESTING_TOOL_TYPE = MotionEvent.TOOL_TYPE_STYLUS;
+    private final SystemUtil.EpdUtil epdUtil;
+
+    private boolean currentDhwState = false;
 
     public DrawingManager(final View view,
                           final int penWidth,
@@ -41,6 +45,7 @@ public class DrawingManager implements DrawingDelegate {
         detectEmulator();
         init(penWidth, handlePressureChanges);
         setListeners();
+        epdUtil = SystemUtil.getEpdUtilInstance();
     }
 
     /**
@@ -67,10 +72,17 @@ public class DrawingManager implements DrawingDelegate {
                     // then being rendered to the view
                     drawCanvas = new Canvas(cachedLayer);
 
-                    SimpleStrikeDelegate simpleStrikeDelegate = new SimpleStrikeDelegate(penWidth, view, cachedLayer, drawCanvas);
+                    SimpleStrikeDelegate simpleStrikeDelegate = new SimpleStrikeDelegate(
+                            penWidth,
+                            view,
+                            cachedLayer,
+                            drawCanvas,
+                            new SimpleStrokeContainer());
                     strikeDelegate = simpleStrikeDelegate;
 
-                    pressureStrikeDelegate = new PressureSensitiveStrikeDelegate(simpleStrikeDelegate);
+                    pressureStrikeDelegate = new PressureSensitiveStrikeDelegate(
+                            simpleStrikeDelegate
+                    );
 
                     //eraserDelegate = new BitmapEraserDelegate(20, view, cachedLayer, drawCanvas);
 
@@ -106,16 +118,22 @@ public class DrawingManager implements DrawingDelegate {
     }
 
 
-
     public void onDraw(Canvas canvas) {
         currentDelegate.onDraw(canvas);
+    }
+
+    private void setDhwState(boolean state) {
+        if (currentDhwState != state) {
+            epdUtil.setDhwState(state);
+            currentDhwState = state;
+        }
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (event.getToolType(0) != INTERESTING_TOOL_TYPE) return false;
 
-        if(event.isButtonPressed(MotionEvent.BUTTON_SECONDARY)) {
+        if (event.isButtonPressed(MotionEvent.BUTTON_SECONDARY)) {
             // HIGHLIGHTING;
             currentDelegate = currentStrikeDelegate;
         } else if (event.isButtonPressed(MotionEvent.BUTTON_TERTIARY)) {
@@ -125,7 +143,7 @@ public class DrawingManager implements DrawingDelegate {
             // STRIKING;
             currentDelegate = currentStrikeDelegate;
         }
-
+        setDhwState(currentDelegate.nativeDhw());
         return currentDelegate.onTouchEvent(event);
     }
 
@@ -152,6 +170,8 @@ public class DrawingManager implements DrawingDelegate {
             savedStrikePenWidth = 0;
             currentStrikeDelegate = strikeDelegate;
         }
+
+        eraserDelegate.setStrikeDelegate(currentStrikeDelegate);
     }
 
     public boolean pressureSensitive() {
@@ -169,6 +189,11 @@ public class DrawingManager implements DrawingDelegate {
     }
 
     @Override
+    public int maxPenWidth() {
+        return currentDelegate.maxPenWidth();
+    }
+
+    @Override
     public PointF lastPosition() {
         return currentDelegate.lastPosition();
     }
@@ -176,6 +201,11 @@ public class DrawingManager implements DrawingDelegate {
     @Override
     public Paint getPaint() {
         return currentDelegate.getPaint();
+    }
+
+    @Override
+    public boolean nativeDhw() {
+        return currentDhwState;
     }
 
 

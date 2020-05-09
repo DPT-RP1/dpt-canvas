@@ -8,8 +8,6 @@ import android.graphics.Rect;
 import android.view.MotionEvent;
 import android.view.View;
 
-import com.sony.dpt.drawing.AbstractDrawingDelegate;
-
 import static android.graphics.Color.BLACK;
 import static android.graphics.Paint.Style.STROKE;
 import static com.sony.dpt.override.UpdateMode.UPDATE_MODE_NOWAIT_NOCONVERT_DU_SP1_IGNORE;
@@ -17,7 +15,7 @@ import static com.sony.dpt.override.UpdateMode.UPDATE_MODE_NOWAIT_NOCONVERT_DU_S
 /**
  * This is in charge of striking the pen on a view
  */
-public class SimpleStrikeDelegate extends AbstractDrawingDelegate implements StrikeDelegate {
+public class SimpleStrikeDelegate extends AbstractStrikeDelegate implements StrikeDelegate {
 
     private Paint paint;
 
@@ -29,13 +27,19 @@ public class SimpleStrikeDelegate extends AbstractDrawingDelegate implements Str
     private final Rect boundingBox;
 
     private final Path drawingPath;
+    private long lastUpMs;
 
-    public SimpleStrikeDelegate(final int strokeWidth, final View view, final Bitmap cachedLayer, final Canvas drawCanvas) {
+    public SimpleStrikeDelegate(final int strokeWidth,
+                                final View view,
+                                final Bitmap cachedLayer,
+                                final Canvas drawCanvas,
+                                final StrokesContainer strokesContainer) {
         super(view, cachedLayer, drawCanvas);
         this.strokeWidth = strokeWidth;
-        this.strokesContainer = new SimpleStrokeContainer();
+        this.strokesContainer = strokesContainer;
         this.boundingBox = new Rect();
         this.drawingPath = new Path();
+        lastUpMs = 0;
         init();
     }
 
@@ -85,8 +89,8 @@ public class SimpleStrikeDelegate extends AbstractDrawingDelegate implements Str
         // We inset by the stroke width so that the invalidation also encompass the full width of the line
 
         boundingBox.inset(-currentStrokeWidth, -currentStrokeWidth);
-        invalidate(boundingBox);
 
+        invalidate(boundingBox);
     }
 
     public void onDraw(Canvas canvas) {
@@ -101,16 +105,23 @@ public class SimpleStrikeDelegate extends AbstractDrawingDelegate implements Str
 
         boundingBox.set((int) lastX, (int) lastY, (int) lastX, (int) lastY);
 
-        if (currentStroke == null) {
-            currentStroke = new SimpleStroke(lastX, lastY);
-            strokesContainer.addDrawingStroke(currentStroke);
-        }
+        // We decide if we want to keep drawing on the same stroke as before
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastUpMs > 100) {
+            if (currentStroke != null) {
+                boundingBox.union(currentStroke.getBoundingBox());
+                boundingBox.inset(-maxPenWidth(), -maxPenWidth());
+            }
 
+            currentStroke = new SimpleStroke(lastX, lastY);
+            strokesContainer.setDrawingStroke(currentStroke);
+            drawingPath.rewind();
+            drawingPath.moveTo(lastX, lastY);
+        }
+        lastUpMs = currentTime;
         switch (action) {
             case MotionEvent.ACTION_DOWN:
-                epdUtil.setDhwState(true);
-                drawingPath.rewind();
-                drawingPath.moveTo(lastX, lastY);
+                handleMotion(event);
                 break;
             case MotionEvent.ACTION_MOVE:
                 handleMotion(event);
@@ -118,8 +129,7 @@ public class SimpleStrikeDelegate extends AbstractDrawingDelegate implements Str
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
                 handleMotion(event);
-                currentStroke = strokesContainer.persistDrawing();
-
+                strokesContainer.persistDrawing();
                 break;
         }
         return true;

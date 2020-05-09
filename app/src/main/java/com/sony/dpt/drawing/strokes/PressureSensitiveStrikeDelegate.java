@@ -15,17 +15,20 @@ import android.view.MotionEvent;
  * - Make clear threshold
  * - Find example of working pressure math
  */
-public class PressureSensitiveStrikeDelegate implements StrikeDelegate {
+public class PressureSensitiveStrikeDelegate extends AbstractStrikeDelegate implements StrikeDelegate {
 
     private final SimpleStrikeDelegate strikeDelegate;
 
     private final int baseWidth;
     private int currentWidth;
+    private int maxPenWidth;
 
     public PressureSensitiveStrikeDelegate(final SimpleStrikeDelegate strikeDelegate) {
+        super(null, null, null);
         this.strikeDelegate = strikeDelegate;
         this.baseWidth = strikeDelegate.penWidth();
         this.currentWidth = this.baseWidth;
+        this.maxPenWidth = this.baseWidth;
     }
 
     public void onDraw(Canvas canvas) {
@@ -34,12 +37,17 @@ public class PressureSensitiveStrikeDelegate implements StrikeDelegate {
 
     public boolean onTouchEvent(MotionEvent event) {
         float pressure = event.getPressure();
-        // We renormalize the pressure: 0.5 is "normal"
-        float multiplier = pressure / 0.5f;
+        // We renormalize the pressure:
+        float multiplier = 1.0f;
+        if (pressure < 0.4f) {
+            multiplier = 0.5f;
+        } else if (pressure > 0.6f) {
+            multiplier = 2f;
+        }
 
         this.currentWidth = (int) (baseWidth * multiplier);
         if (this.currentWidth < 1) this.currentWidth = 1;
-        strikeDelegate.setPenWidth(currentWidth);
+        setPenWidth(this.currentWidth);
 
         return strikeDelegate.onTouchEvent(event);
     }
@@ -57,11 +65,17 @@ public class PressureSensitiveStrikeDelegate implements StrikeDelegate {
     @Override
     public void setPenWidth(int penWidth) {
         strikeDelegate.setPenWidth(penWidth);
+        if (maxPenWidth < penWidth) maxPenWidth = penWidth;
     }
 
     @Override
     public int penWidth() {
         return strikeDelegate.penWidth();
+    }
+
+    @Override
+    public int maxPenWidth() {
+        return maxPenWidth;
     }
 
     @Override

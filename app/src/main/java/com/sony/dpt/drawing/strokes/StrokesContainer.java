@@ -11,12 +11,12 @@ public interface StrokesContainer {
      *
      * @param stroke
      */
-    void addDrawingStroke(final Stroke stroke);
+    void setDrawingStroke(final Stroke stroke);
 
     /**
      * This saves the last draw strokes in the permanent strokes storage
      */
-    Stroke persistDrawing();
+    void persistDrawing();
 
     void addStrokes(final Stroke... strokes);
 

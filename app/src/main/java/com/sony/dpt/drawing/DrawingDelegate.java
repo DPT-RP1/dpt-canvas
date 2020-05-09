@@ -20,7 +20,11 @@ public interface DrawingDelegate {
 
     int penWidth();
 
+    int maxPenWidth();
+
     PointF lastPosition();
 
     Paint getPaint();
+
+    boolean nativeDhw();
 }

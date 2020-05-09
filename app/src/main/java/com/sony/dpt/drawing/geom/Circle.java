@@ -1,18 +1,16 @@
 package com.sony.dpt.drawing.geom;
 
 import android.graphics.PointF;
+import android.graphics.Rect;
 
 public class Circle {
     private PointF center;
     private float radius;
+    private Rect temp;
+    private float strikeWidth;
 
     public Circle() {
-
-    }
-
-    public Circle(PointF center, float radius) {
-        this.center = center;
-        this.radius = radius;
+        temp = new Rect();
     }
 
     public PointF getCenter() {
@@ -29,5 +27,19 @@ public class Circle {
 
     public void setRadius(float radius) {
         this.radius = radius;
+    }
+
+    public void setStrikeWidth(float strikeWidth) {
+        this.strikeWidth = strikeWidth;
+    }
+
+    public Rect getBoundingBox() {
+        temp.set(
+                (int) (center.x - radius - strikeWidth),
+                (int) (center.y - radius - strikeWidth),
+                (int) (center.x + radius + strikeWidth),
+                (int) (center.y + radius + strikeWidth)
+        );
+        return temp;
     }
 }

@@ -3,28 +3,27 @@ package com.sony.dpt.drawing.strokes;
 import android.graphics.Path;
 import android.graphics.PointF;
 import android.graphics.Rect;
-import android.graphics.RectF;
 import android.graphics.Region;
 
 import com.sony.dpt.drawing.geom.Circle;
 
+import java.util.Objects;
+
 public class SimpleStroke implements Stroke {
+
+    private static int currentId = 0;
 
     private final Rect boundingBox;
     private final Path path;
-    private final RectF tempRectF;
     private final Path circlePath;
-
-    public SimpleStroke(PointF init) {
-        this(init.x, init.y);
-    }
+    private final int id;
 
     public SimpleStroke(float x, float y) {
         boundingBox = new Rect((int) x, (int) y, (int) x, (int) y);
         path = new Path();
         path.moveTo(x, y);
-        tempRectF = new RectF();
         circlePath = new Path();
+        this.id = currentId++;
     }
 
     @Override
@@ -39,12 +38,9 @@ public class SimpleStroke implements Stroke {
 
     @Override
     public boolean collides(final Circle circle) {
-        Region clip = new Region(
-                boundingBox.left,
-                boundingBox.top,
-                boundingBox.right,
-                boundingBox.bottom
-        );
+        // We clip by the circle entire bounding box, which is the maximal area we ever get a chance
+        // to find a collision in
+        Region clip = new Region(circle.getBoundingBox());
 
         Region region1 = new Region();
         region1.setPath(path, clip);
@@ -68,4 +64,16 @@ public class SimpleStroke implements Stroke {
         boundingBox.union((int) x, (int) y);
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        SimpleStroke that = (SimpleStroke) o;
+        return id == that.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 }

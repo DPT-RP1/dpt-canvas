@@ -1,41 +1,27 @@
 package com.sony.dpt.drawing.strokes;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 public class SimpleStrokeContainer implements StrokesContainer {
 
-    private List<Stroke> strokes;
-    private List<Stroke> currentlyDrawing;
-    private long lastPersistTimeMs;
+    private Set<Stroke> strokes;
+    private Stroke currentlyDrawing;
 
     public SimpleStrokeContainer() {
-        this.strokes = new ArrayList<Stroke>();
-        this.currentlyDrawing = new ArrayList<Stroke>();
-        this.lastPersistTimeMs = 0;
+        this.strokes = new HashSet<Stroke>();
     }
 
     @Override
-    public void addDrawingStroke(Stroke stroke) {
-        currentlyDrawing.add(stroke);
+    public void setDrawingStroke(Stroke stroke) {
+        currentlyDrawing = stroke;
     }
 
     @Override
-    public Stroke persistDrawing() {
-        Stroke result;
-        long persistTime = System.currentTimeMillis();
-        if (persistTime - lastPersistTimeMs < 100) {
-            // We're still drawing a stroke, let's continue on the same one
-            result = this.currentlyDrawing.get(this.currentlyDrawing.size() - 1);
-        } else {
-            this.strokes.addAll(this.currentlyDrawing);
-            this.currentlyDrawing.clear();
-            result = null;
-        }
-        this.lastPersistTimeMs = persistTime;
-        return result;
+    public void persistDrawing() {
+        if (currentlyDrawing != null) this.strokes.add(this.currentlyDrawing);
     }
 
     @Override
@@ -50,7 +36,7 @@ public class SimpleStrokeContainer implements StrokesContainer {
 
     @Override
     public void clear() {
-        this.currentlyDrawing.clear();
+        this.currentlyDrawing = null;
         this.strokes.clear();
     }
 
