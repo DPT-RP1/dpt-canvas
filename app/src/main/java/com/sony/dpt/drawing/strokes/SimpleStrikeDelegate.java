@@ -4,9 +4,12 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.PointF;
 import android.graphics.Rect;
 import android.view.MotionEvent;
 import android.view.View;
+
+import com.sony.dpt.drawing.geom.Point2D;
 
 import static android.graphics.Color.BLACK;
 import static android.graphics.Paint.Style.STROKE;
@@ -16,6 +19,8 @@ import static com.sony.dpt.override.UpdateMode.UPDATE_MODE_NOWAIT_NOCONVERT_DU_S
  * This is in charge of striking the pen on a view
  */
 public class SimpleStrikeDelegate extends AbstractStrikeDelegate implements StrikeDelegate {
+
+    private static final int TOLERANCE_NOISE_PX = 10;
 
     private Paint paint;
 
@@ -27,7 +32,6 @@ public class SimpleStrikeDelegate extends AbstractStrikeDelegate implements Stri
     private final Rect boundingBox;
 
     private final Path drawingPath;
-    private long lastUpMs;
 
     public SimpleStrikeDelegate(final int strokeWidth,
                                 final View view,
@@ -39,7 +43,6 @@ public class SimpleStrikeDelegate extends AbstractStrikeDelegate implements Stri
         this.strokesContainer = strokesContainer;
         this.boundingBox = new Rect();
         this.drawingPath = new Path();
-        lastUpMs = 0;
         init();
     }
 
@@ -64,30 +67,33 @@ public class SimpleStrikeDelegate extends AbstractStrikeDelegate implements Stri
         );
     }
 
+    private void handlePoint(PointF point) {
+        handlePoint(point.x, point.y);
+    }
+
+    private void handlePoint(float x, float y) {
+        currentStroke.addPoint(x, y);
+        drawingPath.lineTo(x, y);
+        boundingBox.union((int) x, (int) y);
+    }
+
     private void handleMotion(final MotionEvent event) {
         int historySize = event.getHistorySize();
         for (int i = 0; i < historySize; i++) {
             float histX = event.getHistoricalX(i);
             float histY = event.getHistoricalY(i);
-            currentStroke.addPoint(histX, histY);
-            drawingPath.lineTo(histX, histY);
-            boundingBox.union((int) histX, (int) histY);
+            handlePoint(histX, histY);
         }
 
-        boundingBox.union((int) lastY, (int) lastY);
-        currentStroke.addPoint(lastPosition);
-        drawingPath.lineTo(lastX, lastY);
+        handlePoint(lastX, lastY);
 
         drawCanvas.drawPath(drawingPath, paint);
-
-        // Fast ceil
-        int currentStrokeWidth = (int) paint.getStrokeWidth() + 1;
 
         drawingPath.rewind();
         drawingPath.moveTo(lastX, lastY);
 
         // We inset by the stroke width so that the invalidation also encompass the full width of the line
-
+        int currentStrokeWidth = (int) paint.getStrokeWidth();
         boundingBox.inset(-currentStrokeWidth, -currentStrokeWidth);
 
         invalidate(boundingBox);
@@ -100,27 +106,17 @@ public class SimpleStrikeDelegate extends AbstractStrikeDelegate implements Stri
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        PointF prevPosition = new PointF(lastX, lastY);
+
         super.onTouchEvent(event);
         int action = event.getActionMasked();
 
-        boundingBox.set((int) lastX, (int) lastY, (int) lastX, (int) lastY);
+        resetBoundingBox();
 
-        // We decide if we want to keep drawing on the same stroke as before
-        long currentTime = System.currentTimeMillis();
-        if (currentTime - lastUpMs > 100) {
-            if (currentStroke != null) {
-                boundingBox.union(currentStroke.getBoundingBox());
-                boundingBox.inset(-maxPenWidth(), -maxPenWidth());
-            }
-
-            currentStroke = new SimpleStroke(lastX, lastY);
-            strokesContainer.setDrawingStroke(currentStroke);
-            drawingPath.rewind();
-            drawingPath.moveTo(lastX, lastY);
-        }
-        lastUpMs = currentTime;
         switch (action) {
             case MotionEvent.ACTION_DOWN:
+                // We decide if we want to keep drawing on the same stroke as before
+                tolerate(prevPosition);
                 handleMotion(event);
                 break;
             case MotionEvent.ACTION_MOVE:
@@ -133,6 +129,24 @@ public class SimpleStrikeDelegate extends AbstractStrikeDelegate implements Stri
                 break;
         }
         return true;
+    }
+
+    private void resetBoundingBox() {
+        boundingBox.set((int) lastX, (int) lastY, (int) lastX, (int) lastY);
+    }
+
+    private void tolerate(PointF prevPosition) {
+        if (Point2D.distance(prevPosition.x, prevPosition.y, lastX, lastY) > TOLERANCE_NOISE_PX) {
+            if (currentStroke != null) {
+                boundingBox.union(currentStroke.getBoundingBox());
+                boundingBox.inset(-maxPenWidth(), -maxPenWidth());
+            }
+
+            currentStroke = new SimpleStroke(lastX, lastY);
+            strokesContainer.setDrawingStroke(currentStroke);
+            drawingPath.rewind();
+            drawingPath.moveTo(lastX, lastY);
+        }
     }
 
     @Override

@@ -18,6 +18,11 @@ public class SimpleStroke implements Stroke {
     private final Path circlePath;
     private final int id;
 
+    private final static Region clip = new Region();
+    private final static Region pathRegion = new Region();
+    private final static Region circleRegion = new Region();
+
+
     public SimpleStroke(float x, float y) {
         boundingBox = new Rect((int) x, (int) y, (int) x, (int) y);
         path = new Path();
@@ -40,17 +45,15 @@ public class SimpleStroke implements Stroke {
     public boolean collides(final Circle circle) {
         // We clip by the circle entire bounding box, which is the maximal area we ever get a chance
         // to find a collision in
-        Region clip = new Region(circle.getBoundingBox());
+        clip.set(circle.getBoundingBox());
 
-        Region region1 = new Region();
-        region1.setPath(path, clip);
-
-        Region region2 = new Region();
+        pathRegion.setPath(path, clip);
 
         circlePath.rewind();
         circlePath.addCircle(circle.getCenter().x, circle.getCenter().y, circle.getRadius(), Path.Direction.CW);
-        region2.setPath(circlePath, clip);
-        return !region1.quickReject(region2) && region1.op(region2, Region.Op.INTERSECT);
+
+        circleRegion.setPath(circlePath, clip);
+        return !pathRegion.quickReject(circleRegion) && pathRegion.op(circleRegion, Region.Op.INTERSECT);
     }
 
     @Override
