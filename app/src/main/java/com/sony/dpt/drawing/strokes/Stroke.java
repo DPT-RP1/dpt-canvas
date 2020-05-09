@@ -2,7 +2,7 @@ package com.sony.dpt.drawing.strokes;
 
 import android.graphics.Path;
 import android.graphics.PointF;
-import android.graphics.Rect;
+import android.graphics.RectF;
 
 import com.sony.dpt.drawing.geom.Circle;
 
@@ -14,7 +14,7 @@ public interface Stroke {
      *
      * @return
      */
-    Rect getBoundingBox();
+    RectF getBoundingBox();
 
     /**
      * Returns the complete path of that stroke

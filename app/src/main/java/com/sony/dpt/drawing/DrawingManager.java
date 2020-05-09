@@ -4,7 +4,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.PointF;
-import android.graphics.Rect;
+import android.graphics.RectF;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -15,6 +15,7 @@ import com.sony.dpt.drawing.strokes.PressureSensitiveStrikeDelegate;
 import com.sony.dpt.drawing.strokes.SimpleStrikeDelegate;
 import com.sony.dpt.drawing.strokes.SimpleStrokeContainer;
 import com.sony.dpt.drawing.strokes.StrikeDelegate;
+import com.sony.dpt.utils.WakelockUtils;
 import com.sony.infras.dp_libraries.systemutil.SystemUtil;
 
 import static android.graphics.Bitmap.Config.ARGB_8888;
@@ -35,12 +36,14 @@ public class DrawingManager implements DrawingDelegate {
     private final SystemUtil.EpdUtil epdUtil;
 
     private boolean currentDhwState = false;
+    private final WakelockUtils wakelockUtils;
 
     public DrawingManager(final View view,
                           final int penWidth,
-                          final boolean handlePressureChanges) {
+                          final boolean handlePressureChanges,
+                          final WakelockUtils wakelockUtils) {
         this.view = view;
-
+        this.wakelockUtils = wakelockUtils;
         // This allows for non-stylus compatibility (emulator for ex.)
         detectEmulator();
         init(penWidth, handlePressureChanges);
@@ -77,7 +80,8 @@ public class DrawingManager implements DrawingDelegate {
                             view,
                             cachedLayer,
                             drawCanvas,
-                            new SimpleStrokeContainer());
+                            new SimpleStrokeContainer(),
+                            wakelockUtils);
                     strikeDelegate = simpleStrikeDelegate;
 
                     pressureStrikeDelegate = new PressureSensitiveStrikeDelegate(
@@ -148,7 +152,7 @@ public class DrawingManager implements DrawingDelegate {
     }
 
     @Override
-    public void invalidate(Rect dirty) {
+    public void invalidate(RectF dirty) {
         currentDelegate.invalidate(dirty);
     }
 

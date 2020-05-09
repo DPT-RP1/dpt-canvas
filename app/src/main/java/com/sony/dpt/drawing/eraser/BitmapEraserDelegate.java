@@ -3,7 +3,6 @@ package com.sony.dpt.drawing.eraser;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.graphics.Rect;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -18,10 +17,6 @@ public class BitmapEraserDelegate extends AbstractEraserDelegate implements Eras
 
     public BitmapEraserDelegate(int eraserWidth, final View view, final Bitmap cachedLayer, final Canvas drawCanvas) {
         super(eraserWidth, view, cachedLayer, drawCanvas);
-        this.finalEraseInvalidationRectangle = new Rect();
-        this.invalidationRectangle = new Rect();
-        this.previousInvalidationRectangle = new Rect();
-        this.temp = new Rect();
     }
 
 

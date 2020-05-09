@@ -6,7 +6,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
-import android.graphics.Rect;
+import android.graphics.RectF;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -22,11 +22,11 @@ public abstract class AbstractEraserDelegate extends AbstractDrawingDelegate imp
 
     protected static final int CIRCLE_STROKE_WIDTH = 3;
     protected int eraserRadius;
-    protected Rect finalEraseInvalidationRectangle;
-    protected Rect invalidationRectangle;
-    protected Rect temp;
+    protected RectF finalEraseInvalidationRectangle;
+    protected RectF invalidationRectangle;
+    protected RectF temp;
     // This will be use to repaint the circle white
-    protected Rect previousInvalidationRectangle;
+    protected RectF previousInvalidationRectangle;
     protected Paint eraserPaint;
     protected Paint circlePaint;
     // This will be use to repaint the circle white
@@ -41,10 +41,10 @@ public abstract class AbstractEraserDelegate extends AbstractDrawingDelegate imp
         super(view, cachedLayer, drawCanvas);
 
         this.eraserRadius = eraserRadius;
-        this.finalEraseInvalidationRectangle = new Rect();
-        this.invalidationRectangle = new Rect();
-        this.previousInvalidationRectangle = new Rect();
-        this.temp = new Rect();
+        this.finalEraseInvalidationRectangle = new RectF();
+        this.invalidationRectangle = new RectF();
+        this.previousInvalidationRectangle = new RectF();
+        this.temp = new RectF();
         init();
     }
 
@@ -63,12 +63,12 @@ public abstract class AbstractEraserDelegate extends AbstractDrawingDelegate imp
         circlePaint.setStrokeWidth(CIRCLE_STROKE_WIDTH);
     }
 
-    protected void setRectToCurrentPoint(Rect rect) {
+    protected void setRectToCurrentPoint(RectF rect) {
         rect.set(
-                (int) lastX,
-                (int) lastY,
-                (int) lastX,
-                (int) lastY
+                lastX,
+                lastY,
+                lastX,
+                lastY
         );
         rect.inset(-eraserRadius - CIRCLE_STROKE_WIDTH, -eraserRadius - CIRCLE_STROKE_WIDTH);
     }
@@ -78,7 +78,7 @@ public abstract class AbstractEraserDelegate extends AbstractDrawingDelegate imp
         finalEraseInvalidationRectangle.union((int) x, (int) y);
     }
 
-    protected void expandInvalidation(Rect rect, int inset) {
+    protected void expandInvalidation(RectF rect, float inset) {
         invalidationRectangle.union(rect);
         invalidationRectangle.inset(-inset, -inset);
         finalEraseInvalidationRectangle.union(rect);

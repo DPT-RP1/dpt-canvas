@@ -3,7 +3,7 @@ package com.sony.dpt.drawing;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.PointF;
-import android.graphics.Rect;
+import android.graphics.RectF;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -58,15 +58,15 @@ public abstract class AbstractDrawingDelegate implements DrawingDelegate {
     }
 
     @Override
-    public void invalidate(Rect dirty) {
+    public void invalidate(RectF dirty) {
         viewOverride.invalidate(view, dirty, UPDATE_MODE_NOWAIT_NOCONVERT_DU_SP1_IGNORE);
     }
 
-    public void invalidatePartialGC16(Rect dirty) {
+    public void invalidatePartialGC16(RectF dirty) {
         viewOverride.invalidate(view, dirty, UPDATE_MODE_NOWAIT_GC16_PARTIAL_SP1_SP2);
     }
 
-    public void invalidate(Rect dirty, int mode) {
+    public void invalidate(RectF dirty, int mode) {
         viewOverride.invalidate(view, dirty, mode);
     }
 }

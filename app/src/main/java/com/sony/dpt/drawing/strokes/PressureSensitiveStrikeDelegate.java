@@ -3,7 +3,6 @@ package com.sony.dpt.drawing.strokes;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.PointF;
-import android.graphics.Rect;
 import android.view.MotionEvent;
 
 /**
@@ -50,11 +49,6 @@ public class PressureSensitiveStrikeDelegate extends AbstractStrikeDelegate impl
         setPenWidth(this.currentWidth);
 
         return strikeDelegate.onTouchEvent(event);
-    }
-
-    @Override
-    public void invalidate(Rect dirty) {
-        strikeDelegate.invalidate(dirty);
     }
 
     @Override

@@ -2,7 +2,7 @@ package com.sony.dpt.drawing.strokes;
 
 import android.graphics.Path;
 import android.graphics.PointF;
-import android.graphics.Rect;
+import android.graphics.RectF;
 import android.graphics.Region;
 
 import com.sony.dpt.drawing.geom.Circle;
@@ -13,7 +13,7 @@ public class SimpleStroke implements Stroke {
 
     private static int currentId = 0;
 
-    private final Rect boundingBox;
+    private final RectF boundingBox;
     private final Path path;
     private final Path circlePath;
     private final int id;
@@ -24,7 +24,7 @@ public class SimpleStroke implements Stroke {
 
 
     public SimpleStroke(float x, float y) {
-        boundingBox = new Rect((int) x, (int) y, (int) x, (int) y);
+        boundingBox = new RectF(x, y, x, y);
         path = new Path();
         path.moveTo(x, y);
         circlePath = new Path();
@@ -32,7 +32,7 @@ public class SimpleStroke implements Stroke {
     }
 
     @Override
-    public Rect getBoundingBox() {
+    public RectF getBoundingBox() {
         return boundingBox;
     }
 

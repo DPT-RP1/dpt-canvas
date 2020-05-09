@@ -3,12 +3,14 @@ package com.sony.dpt.drawing;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.util.AttributeSet;
 
 import androidx.annotation.Nullable;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.sony.dpt.override.ViewOverride;
+import com.sony.dpt.utils.WakelockUtils;
 
 public class DrawableView extends ConstraintLayout {
 
@@ -20,17 +22,21 @@ public class DrawableView extends ConstraintLayout {
 
     public DrawableView(Context context) {
         super(context);
-        drawingManager = new DrawingManager(this, BASE_STROKE_SIZE, HANDLE_PRESSURE_CHANGE);
+        drawingManager = new DrawingManager(this, BASE_STROKE_SIZE, HANDLE_PRESSURE_CHANGE, wakelockUtils(context));
     }
 
     public DrawableView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
-        drawingManager = new DrawingManager(this, BASE_STROKE_SIZE, HANDLE_PRESSURE_CHANGE);
+        drawingManager = new DrawingManager(this, BASE_STROKE_SIZE, HANDLE_PRESSURE_CHANGE, wakelockUtils(context));
     }
 
     public DrawableView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        drawingManager = new DrawingManager(this, BASE_STROKE_SIZE, HANDLE_PRESSURE_CHANGE);
+        drawingManager = new DrawingManager(this, BASE_STROKE_SIZE, HANDLE_PRESSURE_CHANGE, wakelockUtils(context));
+    }
+
+    private WakelockUtils wakelockUtils(Context context) {
+        return new WakelockUtils(context);
     }
 
     @Override
@@ -44,7 +50,7 @@ public class DrawableView extends ConstraintLayout {
         if (emulatoreMode) {
             super.invalidate();
         } else {
-            drawingManager.invalidate(dirty);
+            drawingManager.invalidate(new RectF(dirty));
         }
     }
 

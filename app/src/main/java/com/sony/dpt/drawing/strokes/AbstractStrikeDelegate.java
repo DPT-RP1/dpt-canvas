@@ -7,7 +7,6 @@ import android.view.View;
 import com.sony.dpt.drawing.AbstractDrawingDelegate;
 
 public abstract class AbstractStrikeDelegate extends AbstractDrawingDelegate {
-    protected boolean nativeSet;
 
     protected AbstractStrikeDelegate(View view, Bitmap cachedLayer, Canvas drawCanvas) {
         super(view, cachedLayer, drawCanvas);

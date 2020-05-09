@@ -1,6 +1,7 @@
 package com.sony.dpt.override;
 
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.view.View;
 
 import java.lang.reflect.Method;
@@ -33,6 +34,12 @@ public class ViewOverride implements IViewOverride {
         } catch (Exception ignored) {
             view.invalidate(rect);
         }
+    }
+
+    public void invalidate(View view, RectF rect, int updateMode) {
+        Rect temp = new Rect();
+        rect.roundOut(temp);
+        invalidate(view, temp, updateMode);
     }
 
     @Override
