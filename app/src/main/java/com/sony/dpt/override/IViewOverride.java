@@ -8,4 +8,6 @@ public interface IViewOverride extends SonyOverride<View> {
     void invalidate(View view, Rect rect, int updateMode);
 
     void invalidate(View view, RectF rect, int updateMode);
+
+    void invalidate(View view, int updateMode);
 }
