@@ -9,6 +9,7 @@ import java.lang.reflect.Method;
 public class ViewOverride implements IViewOverride {
 
     private static Method invalidateRect;
+    private static Method invalidate;
     private static ViewOverride instance;
 
     private boolean loaded;
@@ -16,6 +17,7 @@ public class ViewOverride implements IViewOverride {
     private ViewOverride() {
         try {
             invalidateRect = View.class.getMethod("invalidate", Rect.class, int.class);
+            invalidate = View.class.getMethod("invalidate", int.class);
             invalidateRect.setAccessible(true); // Small acceleration
             loaded = true;
         } catch (Exception ignored) {
@@ -40,6 +42,15 @@ public class ViewOverride implements IViewOverride {
         Rect temp = new Rect();
         rect.roundOut(temp);
         invalidate(view, temp, updateMode);
+    }
+
+    @Override
+    public void invalidate(View view, int updateMode) {
+        try {
+            invalidate.invoke(view, updateMode);
+        } catch (Exception ignored) {
+            view.invalidate();
+        }
     }
 
     @Override
