@@ -3,9 +3,12 @@ package com.sony.dpt.drawing;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.PixelFormat;
 import android.graphics.PointF;
+import android.graphics.Rect;
 import android.graphics.RectF;
 import android.view.MotionEvent;
+import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewTreeObserver;
 
@@ -67,6 +70,46 @@ public class DrawingManager implements DrawingDelegate {
                 @Override
                 public void onGlobalLayout() {
                     view.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                    ((SurfaceView) view).setZOrderOnTop(true);
+                    ((SurfaceView) view).getHolder().setFormat(PixelFormat.TRANSLUCENT);
+                    // TODO: so does that mean there can only be one ?
+                    epdUtil.addDhwArea(
+                            new Rect(
+                                    0,
+                                    0,
+                                    view.getWidth(),
+                                    view.getHeight()
+                            ),
+                            penWidth,
+                            view.getWidth() > view.getHeight() ? 1 : 0
+                    );
+
+                    /*((SurfaceView) view).getHolder().addCallback(new SurfaceHolder.Callback2() {
+                        @Override
+                        public void surfaceCreated(SurfaceHolder holder) {
+                            System.out.println("Surface created");
+                        }
+
+                        @Override
+                        public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+                            System.out.println("Surface changed");
+                        }
+
+                        @Override
+                        public void surfaceDestroyed(SurfaceHolder holder) {
+                            System.out.println("Surface destroyed");
+                        }
+
+                        @Override
+                        public void surfaceRedrawNeeded(SurfaceHolder holder) {
+                            System.out.println("Surface redraw needed");
+                        }
+
+                        @Override
+                        public void surfaceRedrawNeededAsync(SurfaceHolder holder, Runnable drawingFinished) {
+                            System.out.println("Surface redraw needed asyn");
+                        }
+                    });*/
 
                     // Cached Layer contains the entire drawing layer
                     cachedLayer = Bitmap.createBitmap(view.getWidth(), view.getHeight(), ARGB_8888);
@@ -123,7 +166,7 @@ public class DrawingManager implements DrawingDelegate {
 
 
     public void onDraw(Canvas canvas) {
-        currentDelegate.onDraw(canvas);
+        //currentDelegate.onDraw(canvas);
     }
 
     private void setDhwState(boolean state) {
@@ -147,7 +190,8 @@ public class DrawingManager implements DrawingDelegate {
             // STRIKING;
             currentDelegate = currentStrikeDelegate;
         }
-        setDhwState(currentDelegate.nativeDhw());
+        if (event.getActionMasked() == MotionEvent.ACTION_DOWN)
+            setDhwState(currentDelegate.nativeDhw());
         return currentDelegate.onTouchEvent(event);
     }
 

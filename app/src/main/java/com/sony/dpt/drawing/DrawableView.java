@@ -5,14 +5,14 @@ import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.util.AttributeSet;
+import android.view.SurfaceView;
 
 import androidx.annotation.Nullable;
-import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.sony.dpt.override.ViewOverride;
 import com.sony.dpt.utils.WakelockUtils;
 
-public class DrawableView extends ConstraintLayout {
+public class DrawableView extends SurfaceView {
 
     private final DrawingManager drawingManager;
 
@@ -42,7 +42,7 @@ public class DrawableView extends ConstraintLayout {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        drawingManager.onDraw(canvas);
+        //drawingManager.onDraw(canvas);
     }
 
     @Override
