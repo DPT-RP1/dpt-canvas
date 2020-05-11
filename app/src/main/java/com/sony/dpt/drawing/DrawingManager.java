@@ -2,12 +2,15 @@ package com.sony.dpt.drawing;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.PointF;
+import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.view.MotionEvent;
+import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -18,6 +21,8 @@ import com.sony.dpt.drawing.strokes.PressureSensitiveStrikeDelegate;
 import com.sony.dpt.drawing.strokes.SimpleStrikeDelegate;
 import com.sony.dpt.drawing.strokes.SimpleStrokeContainer;
 import com.sony.dpt.drawing.strokes.StrikeDelegate;
+import com.sony.dpt.override.UpdateMode;
+import com.sony.dpt.override.ViewOverride;
 import com.sony.dpt.utils.WakelockUtils;
 import com.sony.infras.dp_libraries.systemutil.SystemUtil;
 
@@ -49,9 +54,10 @@ public class DrawingManager implements DrawingDelegate {
         this.wakelockUtils = wakelockUtils;
         // This allows for non-stylus compatibility (emulator for ex.)
         detectEmulator();
+        epdUtil = SystemUtil.getEpdUtilInstance();
+
         init(penWidth, handlePressureChanges);
         setListeners();
-        epdUtil = SystemUtil.getEpdUtilInstance();
     }
 
     /**
@@ -70,46 +76,60 @@ public class DrawingManager implements DrawingDelegate {
                 @Override
                 public void onGlobalLayout() {
                     view.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                    ((SurfaceView) view).setZOrderOnTop(true);
-                    ((SurfaceView) view).getHolder().setFormat(PixelFormat.TRANSLUCENT);
-                    // TODO: so does that mean there can only be one ?
-                    epdUtil.addDhwArea(
-                            new Rect(
-                                    0,
-                                    0,
-                                    view.getWidth(),
-                                    view.getHeight()
-                            ),
-                            penWidth,
-                            view.getWidth() > view.getHeight() ? 1 : 0
-                    );
+                    SurfaceHolder holder = ((SurfaceView) view).getHolder();
 
-                    /*((SurfaceView) view).getHolder().addCallback(new SurfaceHolder.Callback2() {
+                    holder.addCallback(new SurfaceHolder.Callback2() {
+                        @Override
+                        public void surfaceRedrawNeeded(SurfaceHolder holder) {
+                            System.out.println("redraw needed");
+                        }
+
                         @Override
                         public void surfaceCreated(SurfaceHolder holder) {
-                            System.out.println("Surface created");
+                            System.out.println("surface created");
+
                         }
 
                         @Override
                         public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-                            System.out.println("Surface changed");
+                            Canvas canvas = ViewOverride.getInstance().lockCanvas(holder, UpdateMode.UPDATE_MODE_NOWAIT_DU);
+                            canvas.drawColor(0, PorterDuff.Mode.CLEAR);
+                            canvas.drawColor(-1);
+                            Paint paint = new Paint();
+                            paint.setColor(Color.BLACK);
+                            paint.setStrokeWidth(1);
+                            paint.setStyle(Paint.Style.STROKE);
+                            canvas.drawRect(new Rect(1, 1, 100, 100), paint);
+                            holder.unlockCanvasAndPost(canvas);
+
+                            epdUtil.removeAllDhwArea();
+                            // TODO: so does that mean there can only be one ?
+                            epdUtil.addDhwArea(
+                                    new Rect(
+                                            0,
+                                            0,
+                                            1650,
+                                            2200
+                                    ),
+                                    penWidth,
+                                    0
+                            );
+                            epdUtil.setDhwState(true);
                         }
 
                         @Override
                         public void surfaceDestroyed(SurfaceHolder holder) {
-                            System.out.println("Surface destroyed");
-                        }
-
-                        @Override
-                        public void surfaceRedrawNeeded(SurfaceHolder holder) {
-                            System.out.println("Surface redraw needed");
+                            System.out.println("surface destroyed");
                         }
 
                         @Override
                         public void surfaceRedrawNeededAsync(SurfaceHolder holder, Runnable drawingFinished) {
-                            System.out.println("Surface redraw needed asyn");
+                            System.out.println("redraw async");
                         }
-                    });*/
+                    });
+
+                    holder.setFormat(PixelFormat.RGB_565);
+                    holder.setFixedSize(1650, 2200);
 
                     // Cached Layer contains the entire drawing layer
                     cachedLayer = Bitmap.createBitmap(view.getWidth(), view.getHeight(), ARGB_8888);
@@ -150,8 +170,6 @@ public class DrawingManager implements DrawingDelegate {
                 }
             });
         }
-
-        view.setWillNotDraw(false);
     }
 
 
@@ -189,6 +207,14 @@ public class DrawingManager implements DrawingDelegate {
         } else {
             // STRIKING;
             currentDelegate = currentStrikeDelegate;
+            Canvas c = ViewOverride.getInstance().lockCanvas(((SurfaceView) view).getHolder(), UpdateMode.UPDATE_MODE_NOWAIT_DU);
+            try {
+                c.drawColor(-1);
+                Thread.sleep(200);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            ((SurfaceView) view).getHolder().unlockCanvasAndPost(c);
         }
         if (event.getActionMasked() == MotionEvent.ACTION_DOWN)
             setDhwState(currentDelegate.nativeDhw());

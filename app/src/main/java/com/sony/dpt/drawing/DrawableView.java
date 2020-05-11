@@ -7,8 +7,6 @@ import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.view.SurfaceView;
 
-import androidx.annotation.Nullable;
-
 import com.sony.dpt.override.ViewOverride;
 import com.sony.dpt.utils.WakelockUtils;
 
@@ -25,12 +23,12 @@ public class DrawableView extends SurfaceView {
         drawingManager = new DrawingManager(this, BASE_STROKE_SIZE, HANDLE_PRESSURE_CHANGE, wakelockUtils(context));
     }
 
-    public DrawableView(Context context, @Nullable AttributeSet attrs) {
+    public DrawableView(Context context, AttributeSet attrs) {
         super(context, attrs);
         drawingManager = new DrawingManager(this, BASE_STROKE_SIZE, HANDLE_PRESSURE_CHANGE, wakelockUtils(context));
     }
 
-    public DrawableView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+    public DrawableView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         drawingManager = new DrawingManager(this, BASE_STROKE_SIZE, HANDLE_PRESSURE_CHANGE, wakelockUtils(context));
     }
@@ -43,6 +41,23 @@ public class DrawableView extends SurfaceView {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         //drawingManager.onDraw(canvas);
+    }
+
+    @Override
+    protected void dispatchDraw(Canvas var1) {
+
+        super.dispatchDraw(var1);
+    }
+
+    @Override
+    public void draw(Canvas canvas) {
+        /*if (this.mWindowType != 1000 && (this.mPrivateFlags & 128) == 128) {
+            var1.drawColor(0, Mode.CLEAR);
+        }*/
+        //  canvas.drawColor(-1);
+        System.out.println(canvas.getClipBounds());
+
+        super.draw(canvas);
     }
 
     @Override

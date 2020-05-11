@@ -66,7 +66,7 @@ public class Antialiazer {
         // We have a dot, that easy to anti-aliaze: draw a big circle
         if (start.x == end.x && start.y == end.y) {
             path.addCircle(start.x, start.y, penWidth / 2.0f, Path.Direction.CW);
-            canvas.drawPath(path, paint);
+            //canvas.drawPath(path, paint);
         } else {
             // The goal here is to project a point at penWidth / 2 on the perpendicular line to our path
             // Then we draw the path as a closed filled path rather than a line
@@ -95,7 +95,7 @@ public class Antialiazer {
                 path.addCircle(end.x, end.y, halfWidth, Path.Direction.CW);
 
                 // We draw on the clipped canvas
-                canvas.drawPath(path, paint);
+                //canvas.drawPath(path, paint);
             }
         }
         path.rewind();

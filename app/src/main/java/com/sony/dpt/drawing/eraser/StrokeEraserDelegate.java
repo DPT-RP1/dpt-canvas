@@ -94,7 +94,7 @@ public class StrokeEraserDelegate extends AbstractEraserDelegate implements Eras
             Stroke candidate = it.next();
             if (candidate.collides(eraser)) {
                 expandInvalidation(candidate.getBoundingBox(), penWidth);
-                drawCanvas.drawPath(candidate.getPath(), strokeEraserPaint);
+                //drawCanvas.drawPath(candidate.getPath(), strokeEraserPaint);
                 it.remove();
             }
         }

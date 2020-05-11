@@ -14,7 +14,6 @@ import com.sony.dpt.utils.WakelockUtils;
 
 import static android.graphics.Color.BLACK;
 import static android.graphics.Paint.Style.STROKE;
-import static com.sony.dpt.override.UpdateMode.UPDATE_MODE_NOWAIT_GC16_PARTIAL_SP1_IGNORE;
 import static com.sony.dpt.override.UpdateMode.UPDATE_MODE_NOWAIT_NOCONVERT_DU_SP1_IGNORE;
 
 /**
@@ -82,7 +81,7 @@ public class SimpleStrikeDelegate extends AbstractStrikeDelegate implements Stri
 
         handlePoint(lastX, lastY);
 
-        drawCanvas.drawPath(drawingPath, paint);
+        //drawCanvas.drawPath(drawingPath, paint);
         antializer.draw();
         drawingPath.rewind();
         drawingPath.moveTo(lastX, lastY);
@@ -90,12 +89,12 @@ public class SimpleStrikeDelegate extends AbstractStrikeDelegate implements Stri
         // We inset by the stroke width so that the invalidation also encompass the full width of the line
         int currentStrokeWidth = (int) paint.getStrokeWidth();
         boundingBox.inset(-currentStrokeWidth, -currentStrokeWidth);
-        invalidate(boundingBox);
+        //invalidate(boundingBox);
     }
 
     public void onDraw(Canvas canvas) {
-        canvas.drawColor(-1);
-        super.onDraw(canvas);
+        //canvas.drawColor(-1);
+        //super.onDraw(canvas);
     }
 
     @Override
@@ -148,7 +147,7 @@ public class SimpleStrikeDelegate extends AbstractStrikeDelegate implements Stri
 
             RectF lastStrokeBoundingBox = antializer.resetTotal();
             if (!lastStrokeBoundingBox.isEmpty()) {
-                invalidate(lastStrokeBoundingBox, UPDATE_MODE_NOWAIT_GC16_PARTIAL_SP1_IGNORE);
+                //invalidate(lastStrokeBoundingBox, UPDATE_MODE_NOWAIT_GC16_PARTIAL_SP1_IGNORE);
                 return true;
             }
         }
