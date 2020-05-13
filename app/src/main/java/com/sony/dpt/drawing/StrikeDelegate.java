@@ -72,7 +72,6 @@ public class StrikeDelegate extends AbstractDrawingDelegate {
         updatePath(event.getX(), event.getY());
 
         // We inset by the stroke width so that the invalidation also encompass the full width of the line
-        invalidationRectangle.inset(-strokeWidth, -strokeWidth);
         view.invalidate(invalidationRectangle);
     }
 
