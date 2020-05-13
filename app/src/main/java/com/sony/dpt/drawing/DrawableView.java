@@ -14,8 +14,9 @@ import androidx.annotation.Nullable;
 
 import com.sony.dpt.override.UpdateMode;
 import com.sony.dpt.override.ViewOverride;
+import com.sony.infras.dp_libraries.systemutil.SystemUtil;
 
-public class DrawableView extends SurfaceView implements SurfaceHolder.Callback {
+public class DrawableView extends SurfaceView implements SurfaceHolder.Callback2 {
 
     private final DrawingManager drawingManager;
 
@@ -54,7 +55,28 @@ public class DrawableView extends SurfaceView implements SurfaceHolder.Callback 
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-        System.out.println("Surface changed");
+        SystemUtil.getEpdUtilInstance().addDhwArea(
+                new Rect(
+                        0,
+                        0,
+                        width,
+                        height
+                ),
+                6,
+                0
+        );
+
+
+    }
+
+    @Override
+    public void surfaceDestroyed(SurfaceHolder holder) {
+        System.out.println("Surface destroyed");
+    }
+
+    @Override
+    public void surfaceRedrawNeeded(SurfaceHolder holder) {
+        System.out.println("Surface redraw");
         Paint p = new Paint();
         p.setColor(Color.BLACK);
         p.setStyle(Paint.Style.STROKE);
@@ -62,17 +84,16 @@ public class DrawableView extends SurfaceView implements SurfaceHolder.Callback 
         p.setAntiAlias(false);
         p.setDither(false);
 
-
-        Canvas canvas = ViewOverride.lockCanvas(holder, UpdateMode.UPDATE_MODE_NOWAIT_GC16_PARTIAL_SP1_IGNORE);
+        Canvas canvas = ViewOverride.lockCanvas(holder, UpdateMode.EINK_WAVEFORM_MODE_DU);
         canvas.drawColor(Color.WHITE);
-
-
         canvas.drawRect(1000, 1000, 1100, 1100, p);
         holder.unlockCanvasAndPost(canvas);
+
+
     }
 
     @Override
-    public void surfaceDestroyed(SurfaceHolder holder) {
-        System.out.println("Surface destroyed");
+    public void surfaceRedrawNeededAsync(SurfaceHolder holder, Runnable drawingFinished) {
+
     }
 }

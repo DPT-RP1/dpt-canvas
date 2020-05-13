@@ -25,16 +25,7 @@ public class StrikeDelegate extends AbstractDrawingDelegate {
     }
 
     private void init() {
-        epdUtil.addDhwArea(
-                new Rect(
-                        0,
-                        0,
-                        view.getWidth(),
-                        view.getHeight()
-                ),
-                strokeWidth,
-                0
-        );
+
     }
 
     private void resetInvalidation() {
