@@ -1,7 +1,6 @@
 package com.sony.dpt.drawing;
 
 import android.content.Context;
-import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
@@ -26,11 +25,6 @@ public class DrawableView extends ConstraintLayout {
     public DrawableView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         drawingManager = new DrawingManager(this, 6);
-    }
-
-    @Override
-    protected void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
     }
 
     @Override
