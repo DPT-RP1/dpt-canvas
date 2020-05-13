@@ -3,8 +3,13 @@ package com.sony.dpt;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.sony.dpt.override.UpdateMode;
+import com.sony.dpt.override.ViewOverride;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -13,6 +18,19 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        setHierarchyUpdateMode(getWindow().getDecorView());
+
+    }
+
+    public void setHierarchyUpdateMode(View parent) {
+        ViewOverride.setDefaultUpdateMode(parent, UpdateMode.UPDATE_MODE_NOWAIT_NOCONVERT_DU_SP1_IGNORE);
+
+        if (parent instanceof ViewGroup) {
+            ViewGroup viewGroup = (ViewGroup) parent;
+            for (int i = 0; i < viewGroup.getChildCount(); i++) {
+                setHierarchyUpdateMode(viewGroup.getChildAt(i));
+            }
+        }
     }
 
     @Override
