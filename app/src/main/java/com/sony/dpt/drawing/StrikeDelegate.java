@@ -56,8 +56,8 @@ public class StrikeDelegate extends AbstractDrawingDelegate {
     }
 
     private void resetPath() {
-        currentPath.reset();
-        currentPath.moveTo(lastX, lastY);
+        //currentPath.reset();
+        //currentPath.moveTo(lastX, lastY);
     }
 
     private void resetInvalidation() {
@@ -73,7 +73,7 @@ public class StrikeDelegate extends AbstractDrawingDelegate {
         lastX = x;
         lastY = y;
         invalidationRectangle.union((int) lastX, (int) lastY);
-        currentPath.lineTo(lastX, lastY);
+        //currentPath.lineTo(lastX, lastY);
     }
 
     private void handleMotion(final MotionEvent event) {
@@ -83,7 +83,7 @@ public class StrikeDelegate extends AbstractDrawingDelegate {
         }
         updatePath(event.getX(), event.getY());
 
-        drawCanvas.drawPath(currentPath, paint);
+        //drawCanvas.drawPath(currentPath, paint);
         resetPath();
 
         // We inset by the stroke width so that the invalidation also encompass the full width of the line
@@ -93,8 +93,8 @@ public class StrikeDelegate extends AbstractDrawingDelegate {
 
     public void onDraw(Canvas canvas) {
 
-        canvas.drawColor(-1);
-        canvas.drawBitmap(cachedLayer, 0.0F, 0.0F, null);
+        //canvas.drawColor(-1);
+        //canvas.drawBitmap(cachedLayer, 0.0F, 0.0F, null);
     }
 
     public boolean onTouchEvent(MotionEvent event) {
@@ -115,7 +115,7 @@ public class StrikeDelegate extends AbstractDrawingDelegate {
             case MotionEvent.ACTION_CANCEL:
                 handleMotion(event);
                 resetInvalidation();
-                epdUtil.setDhwState(false);
+                //epdUtil.setDhwState(false);
                 break;
         }
         return true;

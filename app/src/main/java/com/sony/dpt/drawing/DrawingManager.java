@@ -49,7 +49,7 @@ public class DrawingManager implements DrawingDelegate {
             });
         }
 
-        view.setWillNotDraw(false);
+        //view.setWillNotDraw(false);
     }
 
     public void onDraw(Canvas canvas) {
