@@ -1,6 +1,8 @@
 package com.sony.dpt.override;
 
+import android.graphics.Canvas;
 import android.graphics.Rect;
+import android.view.SurfaceHolder;
 import android.view.View;
 
 import com.sony.dpt.drawing.DrawableView;
@@ -12,6 +14,8 @@ public class ViewOverride implements SonyOverride<View> {
     private static Method invalidateRect;
     private static Method setDefaultUpdateMode;
 
+    private static Method lockCanvas;
+
     static {
         try {
             invalidateRect = DrawableView.class.getMethod("invalidate", Rect.class, int.class);
@@ -20,7 +24,8 @@ public class ViewOverride implements SonyOverride<View> {
             setDefaultUpdateMode = View.class.getMethod("setDefaultUpdateMode", int.class);
             setDefaultUpdateMode.setAccessible(true);
 
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
     }
 
     private final View view;
@@ -45,6 +50,19 @@ public class ViewOverride implements SonyOverride<View> {
             setDefaultUpdateMode.invoke(view, updateMode);
         } catch (Exception e) {
             //
+        }
+    }
+
+    public static Canvas lockCanvas(SurfaceHolder surfaceHolder, int updateMode) {
+        try {
+            if (lockCanvas == null) {
+                lockCanvas = surfaceHolder.getClass().getMethod("lockCanvas", int.class);
+            }
+
+            return (Canvas) lockCanvas.invoke(surfaceHolder, updateMode);
+        } catch (Exception e) {
+            //
+            return null;
         }
     }
 }
