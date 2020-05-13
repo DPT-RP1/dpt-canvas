@@ -1,9 +1,6 @@
 package com.sony.dpt.drawing;
 
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.graphics.Path;
 import android.graphics.Rect;
 import android.view.MotionEvent;
 import android.view.View;
@@ -19,7 +16,6 @@ import static com.sony.dpt.override.UpdateMode.UPDATE_MODE_NOWAIT_NOCONVERT_DU_S
  */
 public class StrikeDelegate extends AbstractDrawingDelegate {
 
-    private Path currentPath;
     private Paint paint;
 
     private float lastX;
@@ -27,8 +23,8 @@ public class StrikeDelegate extends AbstractDrawingDelegate {
 
     private int strokeWidth;
 
-    public StrikeDelegate(final int strokeWidth, final View view, final Bitmap cachedLayer, final Canvas drawCanvas) {
-        super(view, cachedLayer, drawCanvas);
+    public StrikeDelegate(final int strokeWidth, final View view) {
+        super(view);
         this.strokeWidth = strokeWidth;
         init();
     }
@@ -41,8 +37,6 @@ public class StrikeDelegate extends AbstractDrawingDelegate {
         paint.setStyle(STROKE);
         paint.setStrokeWidth((float) strokeWidth);
 
-        currentPath = new Path();
-
         epdUtil.addDhwArea(
                 new Rect(
                         0,
@@ -53,11 +47,6 @@ public class StrikeDelegate extends AbstractDrawingDelegate {
                 strokeWidth,
                 0
         );
-    }
-
-    private void resetPath() {
-        //currentPath.reset();
-        //currentPath.moveTo(lastX, lastY);
     }
 
     private void resetInvalidation() {
@@ -73,7 +62,6 @@ public class StrikeDelegate extends AbstractDrawingDelegate {
         lastX = x;
         lastY = y;
         invalidationRectangle.union((int) lastX, (int) lastY);
-        //currentPath.lineTo(lastX, lastY);
     }
 
     private void handleMotion(final MotionEvent event) {
@@ -83,18 +71,9 @@ public class StrikeDelegate extends AbstractDrawingDelegate {
         }
         updatePath(event.getX(), event.getY());
 
-        //drawCanvas.drawPath(currentPath, paint);
-        resetPath();
-
         // We inset by the stroke width so that the invalidation also encompass the full width of the line
         invalidationRectangle.inset(-strokeWidth, -strokeWidth);
         view.invalidate(invalidationRectangle);
-    }
-
-    public void onDraw(Canvas canvas) {
-
-        //canvas.drawColor(-1);
-        //canvas.drawBitmap(cachedLayer, 0.0F, 0.0F, null);
     }
 
     public boolean onTouchEvent(MotionEvent event) {
@@ -105,7 +84,6 @@ public class StrikeDelegate extends AbstractDrawingDelegate {
                 epdUtil.setDhwState(true);
                 lastX = event.getX();
                 lastY = event.getY();
-                resetPath();
                 resetInvalidation();
                 break;
             case MotionEvent.ACTION_MOVE:
@@ -115,7 +93,6 @@ public class StrikeDelegate extends AbstractDrawingDelegate {
             case MotionEvent.ACTION_CANCEL:
                 handleMotion(event);
                 resetInvalidation();
-                //epdUtil.setDhwState(false);
                 break;
         }
         return true;
@@ -126,10 +103,5 @@ public class StrikeDelegate extends AbstractDrawingDelegate {
         ViewOverride.invalidate(view, dirty, UPDATE_MODE_NOWAIT_NOCONVERT_DU_SP1_IGNORE);
     }
 
-    // BETA - This is not fully understood
-    public void changeStrokeWidth(final int newWidth) {
-        this.strokeWidth = newWidth;
-        epdUtil.changeDhwStrokeWidth((int) newWidth, (int) newWidth);
-    }
 
 }

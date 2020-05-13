@@ -31,7 +31,6 @@ public class DrawableView extends ConstraintLayout {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        drawingManager.onDraw(canvas);
     }
 
     @Override
