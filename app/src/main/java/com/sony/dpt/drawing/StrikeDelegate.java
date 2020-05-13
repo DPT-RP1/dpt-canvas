@@ -1,22 +1,17 @@
 package com.sony.dpt.drawing;
 
-import android.graphics.Paint;
 import android.graphics.Rect;
 import android.view.MotionEvent;
 import android.view.View;
 
 import com.sony.dpt.override.ViewOverride;
 
-import static android.graphics.Color.BLACK;
-import static android.graphics.Paint.Style.STROKE;
 import static com.sony.dpt.override.UpdateMode.UPDATE_MODE_NOWAIT_NOCONVERT_DU_SP1_IGNORE;
 
 /**
  * This is in charge of striking the pen on a view
  */
 public class StrikeDelegate extends AbstractDrawingDelegate {
-
-    private Paint paint;
 
     private float lastX;
     private float lastY;
@@ -30,13 +25,6 @@ public class StrikeDelegate extends AbstractDrawingDelegate {
     }
 
     private void init() {
-        paint = new Paint();
-        paint.setColor(BLACK);
-        paint.setAntiAlias(false);
-        paint.setDither(false);
-        paint.setStyle(STROKE);
-        paint.setStrokeWidth((float) strokeWidth);
-
         epdUtil.addDhwArea(
                 new Rect(
                         0,
