@@ -3,6 +3,7 @@ package com.sony.dpt.drawing;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
@@ -54,8 +55,19 @@ public class DrawableView extends SurfaceView implements SurfaceHolder.Callback 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
         System.out.println("Surface changed");
-        Canvas canvas = ViewOverride.lockCanvas(holder, UpdateMode.UPDATE_MODE_NOWAIT_NOCONVERT_DU_SP1_IGNORE);
+        Paint p = new Paint();
+        p.setColor(Color.BLACK);
+        p.setStyle(Paint.Style.STROKE);
+        p.setStrokeWidth(1);
+        p.setAntiAlias(false);
+        p.setDither(false);
+
+
+        Canvas canvas = ViewOverride.lockCanvas(holder, UpdateMode.UPDATE_MODE_NOWAIT_GC16_PARTIAL_SP1_IGNORE);
         canvas.drawColor(Color.WHITE);
+
+
+        canvas.drawRect(1000, 1000, 1100, 1100, p);
         holder.unlockCanvasAndPost(canvas);
     }
 
