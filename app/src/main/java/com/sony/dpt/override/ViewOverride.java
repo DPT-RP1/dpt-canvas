@@ -5,44 +5,39 @@ import android.graphics.Rect;
 import android.view.SurfaceHolder;
 import android.view.View;
 
-import com.sony.dpt.drawing.DrawableView;
-
 import java.lang.reflect.Method;
 
-public class ViewOverride implements SonyOverride<View> {
+public class ViewOverride implements IViewOverride {
 
     private static Method invalidateRect;
     private static Method setDefaultUpdateMode;
+    private static ViewOverride instance;
 
-    private static Method lockCanvas;
+    private boolean loaded;
 
-    static {
+    private ViewOverride() {
         try {
-            invalidateRect = DrawableView.class.getMethod("invalidate", Rect.class, int.class);
+            invalidateRect = View.class.getMethod("invalidate", Rect.class, int.class);
             invalidateRect.setAccessible(true); // Small acceleration
 
             setDefaultUpdateMode = View.class.getMethod("setDefaultUpdateMode", int.class);
             setDefaultUpdateMode.setAccessible(true);
 
+            loaded = true;
         } catch (Exception ignored) {
+            loaded = false;
         }
     }
 
-    private final View view;
-
-    public ViewOverride(final View view) {
-        this.view = view;
+    public static IViewOverride getInstance() {
+        if (instance == null) instance = new ViewOverride();
+        return instance;
     }
 
-    public void invalidate(Rect rect, int updateMode) {
-        invalidate(view, rect, updateMode);
-    }
-
-    public static void invalidate(View view, Rect rect, int updateMode) {
+    public void invalidate(View view, Rect rect, int updateMode) {
         try {
             invalidateRect.invoke(view, rect, updateMode);
-        } catch (Exception ignored) {
-        }
+        } catch (Exception ignored) { view.invalidate(rect);}
     }
 
     public static void setDefaultUpdateMode(View view, int updateMode) {
@@ -61,8 +56,12 @@ public class ViewOverride implements SonyOverride<View> {
 
             return (Canvas) lockCanvas.invoke(surfaceHolder, updateMode);
         } catch (Exception e) {
-            //
-            return null;
+            return surfaceHolder.lockCanvas();
         }
+    }
+
+    @Override
+    public boolean isLoaded() {
+        return loaded;
     }
 }
