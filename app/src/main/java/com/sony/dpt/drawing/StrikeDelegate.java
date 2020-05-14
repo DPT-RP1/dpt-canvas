@@ -1,11 +1,13 @@
 package com.sony.dpt.drawing;
 
 import android.graphics.Rect;
+import android.os.PowerManager;
 import android.view.MotionEvent;
 import android.view.View;
 
 import com.sony.dpt.override.ViewOverride;
 
+import static android.content.Context.POWER_SERVICE;
 import static com.sony.dpt.override.UpdateMode.UPDATE_MODE_NOWAIT_NOCONVERT_DU_SP1_IGNORE;
 
 /**
@@ -21,11 +23,6 @@ public class StrikeDelegate extends AbstractDrawingDelegate {
     public StrikeDelegate(final int strokeWidth, final View view) {
         super(view);
         this.strokeWidth = strokeWidth;
-        init();
-    }
-
-    private void init() {
-
     }
 
     private void resetInvalidation() {
@@ -51,14 +48,21 @@ public class StrikeDelegate extends AbstractDrawingDelegate {
         updatePath(event.getX(), event.getY());
 
         // We inset by the stroke width so that the invalidation also encompass the full width of the line
-        view.invalidate(invalidationRectangle);
+        invalidationRectangle.inset(-strokeWidth, -strokeWidth);
+        invalidate(invalidationRectangle);
     }
+
 
     public boolean onTouchEvent(MotionEvent event) {
         int action = event.getActionMasked();
 
         switch(action) {
             case MotionEvent.ACTION_DOWN:
+                PowerManager powerManager = (PowerManager) view.getContext().getSystemService(POWER_SERVICE);
+                wakeLock = powerManager.newWakeLock(PowerManager.FULL_WAKE_LOCK,
+                        "MyApp::MyWakelockTag");
+                wakeLock.acquire(10 * 60 * 1000L /*10 minutes*/);
+
                 epdUtil.setDhwState(true);
                 lastX = event.getX();
                 lastY = event.getY();
@@ -71,6 +75,7 @@ public class StrikeDelegate extends AbstractDrawingDelegate {
             case MotionEvent.ACTION_CANCEL:
                 handleMotion(event);
                 resetInvalidation();
+                wakeLock.release();
                 break;
         }
         return true;
