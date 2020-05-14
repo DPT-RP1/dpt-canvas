@@ -11,6 +11,7 @@ import java.lang.reflect.Method;
 public class ViewOverride implements IViewOverride {
 
     private static Method invalidateRect;
+    private static Method invalidate;
     private static Method setDefaultUpdateMode;
     private static Method lockCanvas;
 
@@ -24,11 +25,12 @@ public class ViewOverride implements IViewOverride {
         converter = new Rect();
         try {
             invalidateRect = View.class.getMethod("invalidate", Rect.class, int.class);
-            invalidateRect.setAccessible(true); // Small acceleration
-
+            invalidate = View.class.getMethod("invalidate", int.class);
             setDefaultUpdateMode = View.class.getMethod("setDefaultUpdateMode", int.class);
-            setDefaultUpdateMode.setAccessible(true);
 
+            invalidateRect.setAccessible(true); // Small acceleration
+            invalidate.setAccessible(true);
+            setDefaultUpdateMode.setAccessible(true);
             loaded = true;
 
         } catch (Exception ignored) {
@@ -58,7 +60,8 @@ public class ViewOverride implements IViewOverride {
         invalidate(view, converter, updateMode);
     }
 
-    public static void setDefaultUpdateMode(View view, int updateMode) {
+    @Override
+    public void setDefaultUpdateMode(View view, int updateMode) {
         try {
             setDefaultUpdateMode.invoke(view, updateMode);
         } catch (Exception e) {
@@ -66,15 +69,26 @@ public class ViewOverride implements IViewOverride {
         }
     }
 
-    public static Canvas lockCanvas(SurfaceHolder surfaceHolder, int updateMode) {
+    @Override
+    public Canvas lockCanvas(SurfaceHolder surfaceHolder, int updateMode) {
         try {
             if (lockCanvas == null) {
                 lockCanvas = surfaceHolder.getClass().getMethod("lockCanvas", int.class);
+                lockCanvas.setAccessible(true);
             }
 
             return (Canvas) lockCanvas.invoke(surfaceHolder, updateMode);
         } catch (Exception e) {
             return surfaceHolder.lockCanvas();
+        }
+    }
+
+    @Override
+    public void invalidate(View view, int updateMode) {
+        try {
+            invalidate.invoke(view, updateMode);
+        } catch (Exception ignored) {
+            view.invalidate();
         }
     }
 

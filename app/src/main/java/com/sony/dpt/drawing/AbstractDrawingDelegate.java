@@ -46,7 +46,7 @@ public abstract class AbstractDrawingDelegate implements DrawingDelegate {
     }
 
     public void onDraw(Canvas canvas) {
-        canvas.drawBitmap(cachedLayer, 0.0F, 0.0F, null);
+        //canvas.drawBitmap(cachedLayer, 0.0F, 0.0F, null);
     }
 
     @Override

@@ -4,13 +4,10 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Rect;
-import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-
-import androidx.annotation.Nullable;
 
 import com.sony.dpt.override.UpdateMode;
 import com.sony.dpt.override.ViewOverride;
@@ -31,13 +28,13 @@ public class DrawableView extends SurfaceView implements SurfaceHolder.Callback2
         drawingManager = new DrawingManager(this, BASE_STROKE_SIZE, HANDLE_PRESSURE_CHANGE, wakelockUtils(context));
     }
 
-    public DrawableView(Context context, @Nullable AttributeSet attrs) {
+    public DrawableView(Context context, AttributeSet attrs) {
         super(context, attrs);
         this.getHolder().addCallback(this);
         drawingManager = new DrawingManager(this, BASE_STROKE_SIZE, HANDLE_PRESSURE_CHANGE, wakelockUtils(context));
     }
 
-    public DrawableView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+    public DrawableView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         this.getHolder().addCallback(this);
         drawingManager = new DrawingManager(this, BASE_STROKE_SIZE, HANDLE_PRESSURE_CHANGE, wakelockUtils(context));
@@ -78,7 +75,7 @@ public class DrawableView extends SurfaceView implements SurfaceHolder.Callback2
 
     @Override
     public void surfaceRedrawNeeded(SurfaceHolder holder) {
-        Canvas canvas = ViewOverride.lockCanvas(holder, UpdateMode.EINK_WAVEFORM_MODE_DU);
+        Canvas canvas = ViewOverride.getInstance().lockCanvas(holder, UpdateMode.EINK_WAVEFORM_MODE_DU);
         if (canvas != null) {
             canvas.drawColor(Color.WHITE);
             holder.unlockCanvasAndPost(canvas);

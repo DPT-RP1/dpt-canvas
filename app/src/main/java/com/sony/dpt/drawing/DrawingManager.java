@@ -46,8 +46,9 @@ public class DrawingManager implements DrawingDelegate {
         this.wakelockUtils = wakelockUtils;
         // This allows for non-stylus compatibility (emulator for ex.)
         detectEmulator();
-        init(penWidth, handlePressureChanges);
         epdUtil = SystemUtil.getEpdUtilInstance();
+
+        init(penWidth, handlePressureChanges);
     }
 
     /**
@@ -127,7 +128,10 @@ public class DrawingManager implements DrawingDelegate {
             // STRIKING;
             currentDelegate = currentStrikeDelegate;
         }
-        setDhwState(currentDelegate.nativeDhw());
+        if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
+            setDhwState(currentDelegate.nativeDhw());
+        }
+
         return currentDelegate.onTouchEvent(event);
     }
 

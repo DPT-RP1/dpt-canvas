@@ -86,6 +86,17 @@ public class SystemUtil {
 
             return width;
         }
+
+        public void removeAllDhwArea() {
+            SystemUtil.this.nativeRemoveDhwArea(-1);
+        }
+
+        public int removeDhwArea(int areaCode) {
+            if (areaCode < 0) {
+                areaCode = -1;
+            }
+            return SystemUtil.this.nativeRemoveDhwArea(areaCode);
+        }
     }
 
     public class EmulatedEpdUtil extends EpdUtil {
@@ -103,6 +114,14 @@ public class SystemUtil {
 
         public int changeDhwStrokeWidth(int width, int unknown) {
             System.err.println("A Direct Handwritting Stroke width was changed, but not native call available in this device. We will do nothing");
+            return 0;
+        }
+
+        public void removeAllDhwArea() {
+
+        }
+
+        public int removeDhwArea(int nativeRemoveDhwArea) {
             return 0;
         }
     }

@@ -111,7 +111,7 @@ public abstract class AbstractEraserDelegate extends AbstractDrawingDelegate imp
     }
 
     public void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
+        //super.onDraw(canvas);
         if (isErasing) canvas.drawCircle(lastX, lastY, eraserRadius + 1, circlePaint);
     }
 
@@ -159,7 +159,7 @@ public abstract class AbstractEraserDelegate extends AbstractDrawingDelegate imp
         previousInvalidationRectangle.set(invalidationRectangle);
         invalidationRectangle.set(temp);
 
-        drawCanvas.drawCircle(lastX, lastY, eraserRadius, eraserPaint);
+        //drawCanvas.drawCircle(lastX, lastY, eraserRadius, eraserPaint);
     }
 
     @Override

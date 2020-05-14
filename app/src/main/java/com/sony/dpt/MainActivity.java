@@ -20,7 +20,7 @@ public class MainActivity extends Activity {
     }
 
     public void setHierarchyUpdateMode(View parent) {
-        ViewOverride.setDefaultUpdateMode(parent, UpdateMode.UPDATE_MODE_NOWAIT_NOCONVERT_DU_SP1_IGNORE);
+        ViewOverride.getInstance().setDefaultUpdateMode(parent, UpdateMode.UPDATE_MODE_NOWAIT_NOCONVERT_DU_SP1_IGNORE);
 
         if (parent instanceof ViewGroup) {
             ViewGroup viewGroup = (ViewGroup) parent;

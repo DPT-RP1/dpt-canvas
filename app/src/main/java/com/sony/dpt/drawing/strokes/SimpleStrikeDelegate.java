@@ -35,6 +35,7 @@ public class SimpleStrikeDelegate extends AbstractStrikeDelegate implements Stri
     private final Path drawingPath;
     private final WakelockUtils wakelockUtils;
     private PointF prevPosition;
+    private Antialiazer antializer;
 
     public SimpleStrikeDelegate(final int strokeWidth,
                                 final View view,
@@ -49,6 +50,7 @@ public class SimpleStrikeDelegate extends AbstractStrikeDelegate implements Stri
         this.drawingPath = new Path();
         this.prevPosition = new PointF();
         this.wakelockUtils = wakelockUtils;
+        this.antializer = new Antialiazer(drawCanvas, strokeWidth);
         init();
     }
 
@@ -65,6 +67,7 @@ public class SimpleStrikeDelegate extends AbstractStrikeDelegate implements Stri
         currentStroke.addPoint(x, y);
         drawingPath.lineTo(x, y);
         boundingBox.union(x, y);
+        antializer.addPoint(x, y);
     }
 
     private void handleMotion(final MotionEvent event) {
@@ -78,8 +81,8 @@ public class SimpleStrikeDelegate extends AbstractStrikeDelegate implements Stri
 
         handlePoint(lastX, lastY);
 
-        drawCanvas.drawPath(drawingPath, paint);
-
+        //drawCanvas.drawPath(drawingPath, paint);
+        antializer.draw();
         drawingPath.rewind();
         drawingPath.moveTo(lastX, lastY);
 
@@ -101,13 +104,13 @@ public class SimpleStrikeDelegate extends AbstractStrikeDelegate implements Stri
         int action = event.getActionMasked();
 
         resetBoundingBox();
-
         switch (action) {
             case MotionEvent.ACTION_DOWN:
                 wakelockUtils.acquire();
                 // We decide if we want to keep drawing on the same stroke as before
-                tolerate(prevPosition);
-                handleMotion(event);
+                if (!tolerate(prevPosition)) {
+                    handleMotion(event);
+                }
                 break;
             case MotionEvent.ACTION_MOVE:
                 handleMotion(event);
@@ -127,7 +130,7 @@ public class SimpleStrikeDelegate extends AbstractStrikeDelegate implements Stri
         boundingBox.union(prevPosition.x, prevPosition.y);
     }
 
-    private void tolerate(PointF prevPosition) {
+    private boolean tolerate(PointF prevPosition) {
         if (Point2D.distance(prevPosition.x, prevPosition.y, lastX, lastY) > TOLERANCE_NOISE_PX) {
             // This will expand the invalidation to the previous strike, this should be async instead
             if (currentStroke != null) {
@@ -140,7 +143,14 @@ public class SimpleStrikeDelegate extends AbstractStrikeDelegate implements Stri
             drawingPath.rewind();
             drawingPath.moveTo(lastX, lastY);
             boundingBox.set(lastX, lastY, lastX, lastY);
+
+            RectF lastStrokeBoundingBox = antializer.resetTotal();
+            if (!lastStrokeBoundingBox.isEmpty()) {
+                //invalidate(lastStrokeBoundingBox, UPDATE_MODE_NOWAIT_GC16_PARTIAL_SP1_IGNORE);
+                return true;
+            }
         }
+        return false;
     }
 
     @Override
