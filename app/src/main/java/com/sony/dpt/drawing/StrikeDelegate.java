@@ -1,12 +1,13 @@
 package com.sony.dpt.drawing;
 
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.os.PowerManager;
 import android.view.MotionEvent;
 import android.view.View;
-
-import com.sony.dpt.override.ViewOverride;
 
 import static android.content.Context.POWER_SERVICE;
 import static com.sony.dpt.override.UpdateMode.UPDATE_MODE_NOWAIT_NOCONVERT_DU_SP1_IGNORE;
@@ -22,12 +23,8 @@ public class StrikeDelegate extends AbstractDrawingDelegate {
     private int strokeWidth;
 
     private Rect converter;
-
-    public StrikeDelegate(final int strokeWidth, final View view) {
-        super(view);
-        this.strokeWidth = strokeWidth;
-        this.converter = new Rect();
-    }
+    private RectF invalidationRectangle;
+    private PowerManager.WakeLock wakeLock;
 
     private void resetInvalidation() {
         invalidationRectangle.set(lastX, lastY, lastX, lastY);
@@ -51,17 +48,21 @@ public class StrikeDelegate extends AbstractDrawingDelegate {
         invalidate(invalidationRectangle);
     }
 
+    public StrikeDelegate(final int strokeWidth, final View view, final Bitmap cachedLayer, final Canvas drawCanvas) {
+        super(view, cachedLayer, drawCanvas);
+        this.strokeWidth = strokeWidth;
+        this.converter = new Rect();
+        this.invalidationRectangle = new RectF();
+        PowerManager powerManager = (PowerManager) view.getContext().getSystemService(POWER_SERVICE);
+        wakeLock = powerManager.newWakeLock(PowerManager.FULL_WAKE_LOCK, "DPT::DHWLock");
+    }
 
     public boolean onTouchEvent(MotionEvent event) {
         int action = event.getActionMasked();
 
-        switch(action) {
+        switch (action) {
             case MotionEvent.ACTION_DOWN:
-                PowerManager powerManager = (PowerManager) view.getContext().getSystemService(POWER_SERVICE);
-                wakeLock = powerManager.newWakeLock(PowerManager.FULL_WAKE_LOCK,
-                        "MyApp::MyWakelockTag");
                 wakeLock.acquire(10 * 60 * 1000L /*10 minutes*/);
-
                 epdUtil.setDhwState(true);
                 lastX = event.getX();
                 lastY = event.getY();
@@ -81,9 +82,39 @@ public class StrikeDelegate extends AbstractDrawingDelegate {
     }
 
     @Override
+    public boolean pressureSensitive() {
+        return false;
+    }
+
+    @Override
+    public void setPenWidth(int penWidth) {
+        this.strokeWidth = penWidth;
+    }
+
+    @Override
+    public int penWidth() {
+        return strokeWidth;
+    }
+
+    @Override
+    public int maxPenWidth() {
+        return strokeWidth;
+    }
+
+    @Override
+    public Paint getPaint() {
+        return null;
+    }
+
+    @Override
+    public boolean nativeDhw() {
+        return true;
+    }
+
+    @Override
     public void invalidate(RectF dirty) {
         converter.set((int) dirty.left, (int) dirty.top, (int) dirty.right, (int) dirty.bottom);
-        ViewOverride.invalidate(view, converter, UPDATE_MODE_NOWAIT_NOCONVERT_DU_SP1_IGNORE);
+        viewOverride.invalidate(view, converter, UPDATE_MODE_NOWAIT_NOCONVERT_DU_SP1_IGNORE);
     }
 
 

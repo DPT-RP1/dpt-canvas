@@ -5,7 +5,6 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PointF;
-import android.graphics.Rect;
 import android.graphics.RectF;
 import android.view.MotionEvent;
 import android.view.View;
@@ -60,18 +59,6 @@ public class SimpleStrikeDelegate extends AbstractStrikeDelegate implements Stri
         paint.setDither(false);
         paint.setStyle(STROKE);
         paint.setStrokeWidth(strokeWidth);
-
-        // TODO: so does that mean there can only be one ?
-        epdUtil.addDhwArea(
-                new Rect(
-                        0,
-                        0,
-                        view.getWidth(),
-                        view.getHeight()
-                ),
-                strokeWidth,
-                view.getWidth() > view.getHeight() ? 0 : 1
-        );
     }
 
     private void handlePoint(float x, float y) {
@@ -103,8 +90,7 @@ public class SimpleStrikeDelegate extends AbstractStrikeDelegate implements Stri
     }
 
     public void onDraw(Canvas canvas) {
-        canvas.drawColor(-1);
-        super.onDraw(canvas);
+
     }
 
     @Override

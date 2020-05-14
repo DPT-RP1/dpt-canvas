@@ -47,7 +47,6 @@ public class DrawingManager implements DrawingDelegate {
         // This allows for non-stylus compatibility (emulator for ex.)
         detectEmulator();
         init(penWidth, handlePressureChanges);
-        setListeners();
         epdUtil = SystemUtil.getEpdUtilInstance();
     }
 
@@ -110,20 +109,6 @@ public class DrawingManager implements DrawingDelegate {
     }
 
 
-    private void setListeners() {
-        view.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View that, MotionEvent event) {
-                return onTouchEvent(event);
-            }
-        });
-    }
-
-
-    public void onDraw(Canvas canvas) {
-        currentDelegate.onDraw(canvas);
-    }
-
     private void setDhwState(boolean state) {
         epdUtil.setDhwState(state);
     }
@@ -142,7 +127,7 @@ public class DrawingManager implements DrawingDelegate {
             // STRIKING;
             currentDelegate = currentStrikeDelegate;
         }
-
+        setDhwState(currentDelegate.nativeDhw());
         return currentDelegate.onTouchEvent(event);
     }
 

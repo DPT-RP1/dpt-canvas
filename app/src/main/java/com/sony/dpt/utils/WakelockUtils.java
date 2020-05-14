@@ -19,7 +19,7 @@ public class WakelockUtils {
     }
 
     public void acquire() {
-        wakeLock.acquire();
+        wakeLock.acquire(10 * 60 * 1000L /*10 minutes*/);
     }
 
     public void release() {
