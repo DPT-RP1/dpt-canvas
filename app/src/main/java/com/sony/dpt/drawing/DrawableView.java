@@ -3,7 +3,6 @@ package com.sony.dpt.drawing;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
@@ -44,13 +43,7 @@ public class DrawableView extends SurfaceView implements SurfaceHolder.Callback2
     }
 
     @Override
-    public void invalidate(Rect dirty) {
-        drawingManager.invalidate(dirty);
-    }
-
-    @Override
     public void surfaceCreated(SurfaceHolder holder) {
-        System.out.println("Surface created");
     }
 
     @Override
@@ -63,7 +56,7 @@ public class DrawableView extends SurfaceView implements SurfaceHolder.Callback2
                         height
                 ),
                 6,
-                0
+                width < height ? 0 : 1
         );
 
 
@@ -71,25 +64,16 @@ public class DrawableView extends SurfaceView implements SurfaceHolder.Callback2
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
-        System.out.println("Surface destroyed");
+
     }
 
     @Override
     public void surfaceRedrawNeeded(SurfaceHolder holder) {
-        System.out.println("Surface redraw");
-        Paint p = new Paint();
-        p.setColor(Color.BLACK);
-        p.setStyle(Paint.Style.STROKE);
-        p.setStrokeWidth(1);
-        p.setAntiAlias(false);
-        p.setDither(false);
-
         Canvas canvas = ViewOverride.lockCanvas(holder, UpdateMode.EINK_WAVEFORM_MODE_DU);
-        canvas.drawColor(Color.WHITE);
-        canvas.drawRect(1000, 1000, 1100, 1100, p);
-        holder.unlockCanvasAndPost(canvas);
-
-
+        if (canvas != null) {
+            canvas.drawColor(Color.WHITE);
+            holder.unlockCanvasAndPost(canvas);
+        }
     }
 
     @Override

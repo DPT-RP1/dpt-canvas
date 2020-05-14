@@ -1,6 +1,6 @@
 package com.sony.dpt.drawing;
 
-import android.graphics.Rect;
+import android.graphics.RectF;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -55,7 +55,7 @@ public class DrawingManager implements DrawingDelegate {
     }
 
     @Override
-    public void invalidate(Rect dirty) {
+    public void invalidate(RectF dirty) {
         currentDelegate.invalidate(dirty);
     }
 

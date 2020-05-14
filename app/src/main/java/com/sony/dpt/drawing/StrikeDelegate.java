@@ -1,6 +1,7 @@
 package com.sony.dpt.drawing;
 
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.os.PowerManager;
 import android.view.MotionEvent;
 import android.view.View;
@@ -20,24 +21,22 @@ public class StrikeDelegate extends AbstractDrawingDelegate {
 
     private int strokeWidth;
 
+    private Rect converter;
+
     public StrikeDelegate(final int strokeWidth, final View view) {
         super(view);
         this.strokeWidth = strokeWidth;
+        this.converter = new Rect();
     }
 
     private void resetInvalidation() {
-        invalidationRectangle.set(
-                (int) lastX,
-                (int) lastY,
-                (int) lastX,
-                (int) lastY
-        );
+        invalidationRectangle.set(lastX, lastY, lastX, lastY);
     }
 
     private void updatePath(final float x, final float y) {
         lastX = x;
         lastY = y;
-        invalidationRectangle.union((int) lastX, (int) lastY);
+        invalidationRectangle.union(lastX, lastY);
     }
 
     private void handleMotion(final MotionEvent event) {
@@ -82,8 +81,9 @@ public class StrikeDelegate extends AbstractDrawingDelegate {
     }
 
     @Override
-    public void invalidate(Rect dirty) {
-        ViewOverride.invalidate(view, dirty, UPDATE_MODE_NOWAIT_NOCONVERT_DU_SP1_IGNORE);
+    public void invalidate(RectF dirty) {
+        converter.set((int) dirty.left, (int) dirty.top, (int) dirty.right, (int) dirty.bottom);
+        ViewOverride.invalidate(view, converter, UPDATE_MODE_NOWAIT_NOCONVERT_DU_SP1_IGNORE);
     }
 
 
