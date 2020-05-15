@@ -118,10 +118,12 @@ public class SystemUtil {
         }
 
         public void removeAllDhwArea() {
-
+            System.err.println("All direct handwriting areas are being removed, but not native call available on this device. We will do nothing.");
         }
 
         public int removeDhwArea(int nativeRemoveDhwArea) {
+            System.err.println("A direct handwriting areas is being removed, but not native call available on this device. We will do nothing.");
+
             return 0;
         }
     }

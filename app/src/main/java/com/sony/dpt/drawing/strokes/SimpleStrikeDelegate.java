@@ -81,7 +81,7 @@ public class SimpleStrikeDelegate extends AbstractStrikeDelegate implements Stri
 
         handlePoint(lastX, lastY);
 
-        //drawCanvas.drawPath(drawingPath, paint);
+        drawCanvas.drawPath(drawingPath, paint);
         antializer.draw();
         drawingPath.rewind();
         drawingPath.moveTo(lastX, lastY);
@@ -93,7 +93,7 @@ public class SimpleStrikeDelegate extends AbstractStrikeDelegate implements Stri
     }
 
     public void onDraw(Canvas canvas) {
-
+        canvas.drawBitmap(cachedLayer, 0, 0, null);
     }
 
     @Override

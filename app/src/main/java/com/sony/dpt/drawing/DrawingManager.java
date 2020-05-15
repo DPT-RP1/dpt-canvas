@@ -140,11 +140,17 @@ public class DrawingManager implements DrawingDelegate {
         currentDelegate.invalidate(dirty);
     }
 
+    @Override
+    public void onDraw(Canvas canvas) {
+        currentDelegate.onDraw(canvas);
+    }
+
     private int savedStrikePenWidth;
 
     /**
      * Sets the pressure sensitive mode to true for all strike, eraser and highlight delegates.
      * Keeps the previous fixed width to restore later.
+     *
      * @param enable True to activate pressure sensitivity
      */
     public void pressureSensitive(boolean enable) {

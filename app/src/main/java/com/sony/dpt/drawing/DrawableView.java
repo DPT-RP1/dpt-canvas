@@ -56,6 +56,7 @@ public class DrawableView extends SurfaceView implements SurfaceHolder.Callback2
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+        SystemUtil.getEpdUtilInstance().removeAllDhwArea();
         SystemUtil.getEpdUtilInstance().addDhwArea(
                 new Rect(
                         0,
@@ -63,14 +64,14 @@ public class DrawableView extends SurfaceView implements SurfaceHolder.Callback2
                         width,
                         height
                 ),
-                6,
+                drawingManager.penWidth(),
                 width < height ? 0 : 1
         );
     }
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
-
+        SystemUtil.getEpdUtilInstance().removeAllDhwArea();
     }
 
     @Override
@@ -85,5 +86,10 @@ public class DrawableView extends SurfaceView implements SurfaceHolder.Callback2
     @Override
     public void surfaceRedrawNeededAsync(SurfaceHolder holder, Runnable drawingFinished) {
 
+    }
+
+    @Override
+    protected void onDraw(Canvas canvas) {
+        drawingManager.onDraw(canvas);
     }
 }

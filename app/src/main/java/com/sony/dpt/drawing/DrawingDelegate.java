@@ -25,4 +25,6 @@ public interface DrawingDelegate {
     boolean nativeDhw();
 
     void invalidate(RectF dirty);
+
+    void onDraw(Canvas canvas);
 }
