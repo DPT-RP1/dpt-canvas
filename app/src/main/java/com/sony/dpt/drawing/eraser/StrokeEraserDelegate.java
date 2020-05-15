@@ -17,6 +17,8 @@ import com.sony.dpt.drawing.strokes.StrokesContainer;
 import java.util.Collection;
 import java.util.Iterator;
 
+import static com.sony.dpt.override.UpdateMode.UPDATE_MODE_NOWAIT_NOCONVERT_DU_SP1_IGNORE;
+
 /**
  * The goal of this class is to extend the behaviour of the eraser to delete entire strokes
  */
@@ -43,14 +45,14 @@ public class StrokeEraserDelegate extends AbstractEraserDelegate implements Eras
         strokeEraserPaint.setAlpha(0);
         strokeEraserPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
         strokeEraserPaint.setStyle(Paint.Style.STROKE);
-        strokeEraserPaint.setStrokeWidth(6f);
+        strokeEraserPaint.setStrokeWidth(strikeDelegate.penWidth());
     }
 
     protected void handleMotion(final MotionEvent event) {
         super.handleMotion(event);
         detectCollisions();
 
-        invalidate(invalidationRectangle);
+        invalidate(invalidationRectangle, UPDATE_MODE_NOWAIT_NOCONVERT_DU_SP1_IGNORE);
     }
 
     @Override
@@ -94,7 +96,7 @@ public class StrokeEraserDelegate extends AbstractEraserDelegate implements Eras
             Stroke candidate = it.next();
             if (candidate.collides(eraser)) {
                 expandInvalidation(candidate.getBoundingBox(), penWidth);
-                //drawCanvas.drawPath(candidate.getPath(), strokeEraserPaint);
+                drawCanvas.drawPath(candidate.getPath(), strokeEraserPaint);
                 it.remove();
             }
         }

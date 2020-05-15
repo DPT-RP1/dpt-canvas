@@ -111,7 +111,7 @@ public abstract class AbstractEraserDelegate extends AbstractDrawingDelegate imp
     }
 
     public void onDraw(Canvas canvas) {
-        //super.onDraw(canvas);
+        super.onDraw(canvas);
         if (isErasing) canvas.drawCircle(lastX, lastY, eraserRadius + 1, circlePaint);
     }
 
@@ -128,6 +128,7 @@ public abstract class AbstractEraserDelegate extends AbstractDrawingDelegate imp
                 break;
             case ACTION_MOVE:
                 handleMotion(event);
+                invalidationRectangle.setEmpty();
                 break;
             case ACTION_CANCEL:
             case ACTION_UP:
@@ -139,7 +140,7 @@ public abstract class AbstractEraserDelegate extends AbstractDrawingDelegate imp
                 invalidationRectangle.setEmpty();
                 break;
         }
-        return false;
+        return true;
     }
 
     protected void handleMotion(final MotionEvent event) {
@@ -151,15 +152,11 @@ public abstract class AbstractEraserDelegate extends AbstractDrawingDelegate imp
         // We redraw the part that we drew black last time.
         temp.set(invalidationRectangle);
         temp.union(previousInvalidationRectangle);
-
-        temp.inset(
-                -eraserRadius - CIRCLE_STROKE_WIDTH,
-                -eraserRadius - CIRCLE_STROKE_WIDTH
-        );
+        temp.inset(-eraserRadius - eraserPaint.getStrokeWidth(), -eraserRadius - eraserPaint.getStrokeWidth());
         previousInvalidationRectangle.set(invalidationRectangle);
         invalidationRectangle.set(temp);
 
-        //drawCanvas.drawCircle(lastX, lastY, eraserRadius, eraserPaint);
+        drawCanvas.drawCircle(lastX, lastY, eraserRadius, eraserPaint);
     }
 
     @Override

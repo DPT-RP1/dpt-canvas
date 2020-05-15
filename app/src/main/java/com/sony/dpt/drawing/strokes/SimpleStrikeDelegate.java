@@ -92,10 +92,6 @@ public class SimpleStrikeDelegate extends AbstractStrikeDelegate implements Stri
         invalidate(boundingBox);
     }
 
-    public void onDraw(Canvas canvas) {
-        canvas.drawBitmap(cachedLayer, 0, 0, null);
-    }
-
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         prevPosition.set(lastX, lastY);
