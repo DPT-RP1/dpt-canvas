@@ -18,7 +18,7 @@ public class DrawableView extends SurfaceView implements SurfaceHolder.Callback2
 
     private final DrawingManager drawingManager;
 
-    private static final int BASE_STROKE_SIZE = 6;
+    private static final int BASE_STROKE_SIZE = 12;
     private static final boolean HANDLE_PRESSURE_CHANGE = false;
     private static final boolean emulatoreMode = !ViewOverride.getInstance().isLoaded();
 

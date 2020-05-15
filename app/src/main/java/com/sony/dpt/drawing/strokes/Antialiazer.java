@@ -15,19 +15,19 @@ public class Antialiazer {
     private PointF start;
     private PointF end;
     private float penWidth;
-    private Path path;
-    private Paint paint;
-    private RectF totalBoundingBox;
-    private RectF boundingBox;
-    private RectF temp;
+    private final Path path;
+    private final Paint paint;
+    private final RectF totalBoundingBox;
+    private final RectF boundingBox;
+    private final RectF temp;
 
     public Antialiazer(Canvas canvas, float penWidth) {
         this.canvas = canvas;
-        this.penWidth = penWidth + 1;
+        this.penWidth = penWidth;
         this.path = new Path();
         this.paint = new Paint();
         this.paint.setStyle(Paint.Style.FILL);
-        this.paint.setAntiAlias(true); // That's what we're doing
+        this.paint.setAntiAlias(false);
         this.paint.setDither(false);
         this.paint.setColor(BLACK);
         this.totalBoundingBox = new RectF();
@@ -43,7 +43,6 @@ public class Antialiazer {
         } else {
             end.set(x, y);
             boundingBox.union(end.x, end.y);
-            boundingBox.inset(-6, -6);
         }
         totalBoundingBox.union(boundingBox);
     }
@@ -51,8 +50,12 @@ public class Antialiazer {
     public RectF resetTotal() {
         start = null;
         end = null;
+
         temp.set(totalBoundingBox);
-        totalBoundingBox.setEmpty();
+        if (!totalBoundingBox.isEmpty()) {
+            temp.inset(-penWidth, -penWidth);
+            totalBoundingBox.setEmpty();
+        }
         return temp;
     }
 
@@ -61,12 +64,14 @@ public class Antialiazer {
         // We save the unclipped canvans
         canvas.save();
         // We make the canvas smaller to only draw where we care
-        canvas.clipRect(boundingBox, Region.Op.REPLACE);
+        temp.set(boundingBox);
+        temp.inset(-penWidth, -penWidth);
+        canvas.clipRect(temp, Region.Op.REPLACE);
 
         // We have a dot, that easy to anti-aliaze: draw a big circle
         if (start.x == end.x && start.y == end.y) {
             path.addCircle(start.x, start.y, penWidth / 2.0f, Path.Direction.CW);
-            //canvas.drawPath(path, paint);
+            canvas.drawPath(path, paint);
         } else {
             // The goal here is to project a point at penWidth / 2 on the perpendicular line to our path
             // Then we draw the path as a closed filled path rather than a line
@@ -76,7 +81,7 @@ public class Antialiazer {
             );
 
             if (length > 0.0f) {
-                final float halfWidth = penWidth / 2.0f;
+                final float halfWidth = (float) Math.ceil(penWidth / 2.0f);
 
                 // Move on the perpendicular vector by half stroke width
                 final float xOffset = (end.y - start.y) * halfWidth / length;
@@ -95,7 +100,7 @@ public class Antialiazer {
                 path.addCircle(end.x, end.y, halfWidth, Path.Direction.CW);
 
                 // We draw on the clipped canvas
-                //canvas.drawPath(path, paint);
+                canvas.drawPath(path, paint);
             }
         }
         path.rewind();
@@ -106,5 +111,9 @@ public class Antialiazer {
 
     public void setPenWidth(float penWidth) {
         this.penWidth = penWidth;
+    }
+
+    public Paint getPaint() {
+        return paint;
     }
 }
