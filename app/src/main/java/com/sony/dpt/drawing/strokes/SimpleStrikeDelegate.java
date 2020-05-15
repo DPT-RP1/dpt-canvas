@@ -44,7 +44,7 @@ public class SimpleStrikeDelegate extends AbstractStrikeDelegate implements Stri
         this.boundingBox = new RectF();
         this.prevPosition = new PointF();
         this.wakelockUtils = wakelockUtils;
-        this.antializer = new Antialiazer(drawCanvas, strokeWidth);
+        this.antializer = new Antialiazer(drawCanvas, cachedLayer, strokeWidth);
     }
 
     private void handlePoint(float x, float y) {
@@ -54,6 +54,10 @@ public class SimpleStrikeDelegate extends AbstractStrikeDelegate implements Stri
     }
 
     private void handleMotion(final MotionEvent event) {
+        handleMotion(event, false);
+    }
+
+    private void handleMotion(final MotionEvent event, boolean silent) {
         int historySize = event.getHistorySize();
         for (int i = 0; i < historySize; i++) {
             handlePoint(
@@ -64,11 +68,12 @@ public class SimpleStrikeDelegate extends AbstractStrikeDelegate implements Stri
 
         handlePoint(lastX, lastY);
 
-        antializer.draw();
-
         // We inset by the stroke width so that the invalidation also encompass the full width of the line
         boundingBox.inset(-strokeWidth, -strokeWidth);
-        invalidate(boundingBox);
+
+        if (!silent) {
+            invalidate(boundingBox);
+        }
     }
 
     @Override
@@ -83,16 +88,18 @@ public class SimpleStrikeDelegate extends AbstractStrikeDelegate implements Stri
             case MotionEvent.ACTION_DOWN:
                 wakelockUtils.acquire();
                 // We decide if we want to keep drawing on the same stroke as before
-                if (!tolerate(prevPosition)) {
-                    handleMotion(event);
-                }
+                tolerate(prevPosition);
+                handleMotion(event);
+
                 break;
             case MotionEvent.ACTION_MOVE:
                 handleMotion(event);
                 break;
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
-                handleMotion(event);
+                handleMotion(event, true);
+                RectF lastStrokeBoundingBox = antializer.resetTotal();
+                invalidate(lastStrokeBoundingBox, UpdateMode.UPDATE_MODE_NOWAIT_GC16_PARTIAL_SP1_IGNORE);
                 strokesContainer.persistDrawing();
                 wakelockUtils.release();
                 break;
@@ -110,15 +117,9 @@ public class SimpleStrikeDelegate extends AbstractStrikeDelegate implements Stri
             currentStroke = new SimpleStroke(lastX, lastY);
             strokesContainer.setDrawingStroke(currentStroke);
             boundingBox.set(lastX, lastY, lastX, lastY);
-
-            RectF lastStrokeBoundingBox = antializer.resetTotal();
-            if (!lastStrokeBoundingBox.isEmpty()) {
-                System.out.println(lastStrokeBoundingBox);
-                invalidate(lastStrokeBoundingBox, UpdateMode.UPDATE_MODE_CONVERT_A2_PARTIAL);
-                return true;
-            }
+            return false;
         }
-        return false;
+        return true;
     }
 
     @Override

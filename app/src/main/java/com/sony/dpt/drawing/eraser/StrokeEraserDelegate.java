@@ -41,11 +41,12 @@ public class StrokeEraserDelegate extends AbstractEraserDelegate implements Eras
 
     protected void initStrokeErasure() {
         strokeEraserPaint = new Paint();
-        strokeEraserPaint.setAntiAlias(false);
+        strokeEraserPaint.setAntiAlias(true);
+        strokeEraserPaint.setDither(true);
         strokeEraserPaint.setAlpha(0);
         strokeEraserPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
         strokeEraserPaint.setStyle(Paint.Style.STROKE);
-        strokeEraserPaint.setStrokeWidth(strikeDelegate.penWidth());
+        strokeEraserPaint.setStrokeWidth(strikeDelegate.penWidth() + 3);
     }
 
     protected void handleMotion(final MotionEvent event) {
@@ -88,14 +89,14 @@ public class StrokeEraserDelegate extends AbstractEraserDelegate implements Eras
         StrokesContainer strokesContainer = strikeDelegate.getStrokesContainer();
         Collection<Stroke> candidates = strokesContainer.getAll();
 
-        strokeEraserPaint.setStrokeWidth(penWidth);
+        strokeEraserPaint.setStrokeWidth(penWidth + 3);
 
         Iterator<Stroke> it = candidates.iterator();
 
         while (it.hasNext()) {
             Stroke candidate = it.next();
             if (candidate.collides(eraser)) {
-                expandInvalidation(candidate.getBoundingBox(), penWidth);
+                expandInvalidation(candidate.getBoundingBox(), penWidth + 3);
                 drawCanvas.drawPath(candidate.getPath(), strokeEraserPaint);
                 it.remove();
             }

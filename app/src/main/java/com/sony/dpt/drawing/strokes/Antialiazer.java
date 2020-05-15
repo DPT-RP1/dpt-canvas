@@ -1,11 +1,16 @@
 package com.sony.dpt.drawing.strokes;
 
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PointF;
+import android.graphics.PorterDuff;
 import android.graphics.RectF;
 import android.graphics.Region;
+
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static android.graphics.Color.BLACK;
 
@@ -21,7 +26,9 @@ public class Antialiazer {
     private final RectF boundingBox;
     private final RectF temp;
 
-    public Antialiazer(Canvas canvas, float penWidth) {
+    private AntialiazingThread antialiazingThread;
+
+    public Antialiazer(final Canvas canvas, final Bitmap cachedLayer, float penWidth) {
         this.canvas = canvas;
         this.penWidth = penWidth;
         this.path = new Path();
@@ -33,6 +40,8 @@ public class Antialiazer {
         this.totalBoundingBox = new RectF();
         this.boundingBox = new RectF();
         this.temp = new RectF();
+
+        antialiazingThread = new AntialiazingThread(canvas, cachedLayer);
     }
 
     public void addPoint(float x, float y) {
@@ -40,16 +49,23 @@ public class Antialiazer {
             start = new PointF(x, y);
             end = new PointF(x, y);
             boundingBox.set(start.x, start.y, start.x, start.y);
+            if (!antialiazingThread.isAlive()) {
+                antialiazingThread.start();
+            }
         } else {
             end.set(x, y);
             boundingBox.union(end.x, end.y);
         }
         totalBoundingBox.union(boundingBox);
+        draw();
     }
 
     public RectF resetTotal() {
         start = null;
         end = null;
+
+        antialiazingThread.apply();
+        antialiazingThread.resetStroke();
 
         temp.set(totalBoundingBox);
         if (!totalBoundingBox.isEmpty()) {
@@ -59,7 +75,7 @@ public class Antialiazer {
         return temp;
     }
 
-    public void draw() {
+    private void draw() {
 
         // We save the unclipped canvans
         canvas.save();
@@ -101,6 +117,7 @@ public class Antialiazer {
 
                 // We draw on the clipped canvas
                 canvas.drawPath(path, paint);
+                antialiazingThread.enqueueForAntialiazing(path);
             }
         }
         path.rewind();
@@ -115,5 +132,72 @@ public class Antialiazer {
 
     public Paint getPaint() {
         return paint;
+    }
+
+    public static class AntialiazingThread extends Thread {
+
+        private final Paint antializedPaint;
+        private final Canvas antializer;
+        private final Bitmap antializedBitmap;
+        private final Bitmap cachedLayer;
+        private final RectF clipBounds;
+        private final Canvas drawingCanvas;
+        private final ConcurrentLinkedQueue<Path> paths;
+
+        public AntialiazingThread(final Canvas drawingCanvas, final Bitmap cachedLayer) {
+            this.cachedLayer = cachedLayer;
+            this.clipBounds = new RectF();
+            antializedPaint = new Paint(BLACK);
+            antializedPaint.setDither(true);
+            antializedPaint.setAntiAlias(true);
+
+            antializedBitmap = Bitmap.createBitmap(cachedLayer.getWidth(), cachedLayer.getHeight(), Bitmap.Config.ARGB_8888);
+            antializer = new Canvas(antializedBitmap);
+
+            this.drawingCanvas = drawingCanvas;
+            this.paths = new ConcurrentLinkedQueue<Path>();
+        }
+
+        public void resetStroke() {
+            clipBounds.setEmpty();
+            antializer.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+            paths.clear();
+        }
+
+        public void apply() {
+            drawingCanvas.drawBitmap(antializedBitmap, 0, 0, null);
+            resetStroke();
+        }
+
+        public void enqueueForAntialiazing(final Path path) {
+            paths.add(new Path(path));
+            synchronized (this) {
+                this.notify();
+            }
+        }
+
+        @Override
+        public void run() {
+            boolean interrupted = false;
+            while (!interrupted || !paths.isEmpty()) {
+
+                while (!paths.isEmpty()) {
+                    Path next = paths.poll();
+                    antializer.drawPath(next, antializedPaint);
+                }
+
+                try {
+                    synchronized (this) {
+                        this.wait();
+                    }
+                } catch (InterruptedException e) {
+                    interrupted = true;
+                }
+            }
+        }
+
+        public boolean isReady() {
+            return paths.isEmpty();
+        }
     }
 }

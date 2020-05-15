@@ -1,6 +1,7 @@
 package com.sony.dpt.drawing;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Rect;
@@ -9,16 +10,19 @@ import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
+import com.sony.dpt.override.IViewOverride;
 import com.sony.dpt.override.UpdateMode;
 import com.sony.dpt.override.ViewOverride;
 import com.sony.dpt.utils.WakelockUtils;
 import com.sony.infras.dp_libraries.systemutil.SystemUtil;
 
+import java.util.concurrent.ConcurrentLinkedQueue;
+
 public class DrawableView extends SurfaceView implements SurfaceHolder.Callback2 {
 
     private final DrawingManager drawingManager;
 
-    private static final int BASE_STROKE_SIZE = 12;
+    private static final int BASE_STROKE_SIZE = 5;
     private static final boolean HANDLE_PRESSURE_CHANGE = false;
     private static final boolean emulatoreMode = !ViewOverride.getInstance().isLoaded();
 
@@ -91,5 +95,42 @@ public class DrawableView extends SurfaceView implements SurfaceHolder.Callback2
     @Override
     protected void onDraw(Canvas canvas) {
         drawingManager.onDraw(canvas);
+    }
+
+    private static class DrawingThread extends Thread {
+
+        private final SurfaceHolder surfaceHolder;
+        private final Bitmap cachedLayer;
+        private final IViewOverride viewOverride;
+        private final ConcurrentLinkedQueue<Rect> areas;
+
+        public DrawingThread(final SurfaceHolder surfaceHolder, final Bitmap cachedLayer, final IViewOverride viewOverride) {
+            this.surfaceHolder = surfaceHolder;
+            this.cachedLayer = cachedLayer;
+            this.viewOverride = viewOverride;
+            this.areas = new ConcurrentLinkedQueue<Rect>();
+        }
+
+        @Override
+        public void run() {
+            while (true) {
+                // Dirty trick from Sony: trigger a first frame in A2 partial, then lock the next frame in GC16
+                Canvas canvas = viewOverride.lockCanvas(surfaceHolder, UpdateMode.UPDATE_MODE_CONVERT_A2_PARTIAL);
+                canvas.drawBitmap(cachedLayer, 0, 0, null);
+                synchronized (this) {
+                    try {
+                        this.wait();
+                    } catch (InterruptedException e) {
+                    }
+                }
+            }
+        }
+
+        public void enqueueArea(final Rect area) {
+            areas.add(area);
+            synchronized (this) {
+                this.notify();
+            }
+        }
     }
 }
