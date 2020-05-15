@@ -9,7 +9,8 @@ android {
     defaultConfig {
         applicationId "com.sony.dpt"
         minSdkVersion 22
-        targetSdkVersion 29
+        maxSdkVersion 22
+        targetSdkVersion 22
         versionCode 1
         versionName "1.0"
 
@@ -26,6 +27,11 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_6
         targetCompatibility JavaVersion.VERSION_1_6
     }
+
+    lintOptions {
+        abortOnError false
+    }
+
 }
 
 dependencies {
