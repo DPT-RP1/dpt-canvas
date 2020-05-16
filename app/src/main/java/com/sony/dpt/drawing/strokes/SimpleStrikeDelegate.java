@@ -9,9 +9,9 @@ import android.view.MotionEvent;
 import android.view.View;
 
 import com.sony.dpt.drawing.geom.Point2D;
-import com.sony.dpt.override.UpdateMode;
-import com.sony.dpt.utils.WakelockUtils;
+import com.sony.dpt.drawing.rendering.DrawingThread;
 
+import static com.sony.dpt.override.UpdateMode.UPDATE_MODE_NOWAIT_GC16_PARTIAL_SP1_IGNORE;
 import static com.sony.dpt.override.UpdateMode.UPDATE_MODE_NOWAIT_NOCONVERT_DU_SP1_IGNORE;
 
 /**
@@ -28,22 +28,22 @@ public class SimpleStrikeDelegate extends AbstractStrikeDelegate implements Stri
 
     private final RectF boundingBox;
 
-    private final WakelockUtils wakelockUtils;
     private final PointF prevPosition;
     private final Antialiazer antializer;
+    private final DrawingThread drawingThread;
 
     public SimpleStrikeDelegate(final int strokeWidth,
                                 final View view,
                                 final Bitmap cachedLayer,
                                 final Canvas drawCanvas,
-                                final StrokesContainer strokesContainer,
-                                final WakelockUtils wakelockUtils) {
+                                final DrawingThread drawingThread,
+                                final StrokesContainer strokesContainer) {
         super(view, cachedLayer, drawCanvas);
         this.strokeWidth = strokeWidth;
         this.strokesContainer = strokesContainer;
         this.boundingBox = new RectF();
         this.prevPosition = new PointF();
-        this.wakelockUtils = wakelockUtils;
+        this.drawingThread = drawingThread;
         this.antializer = new Antialiazer(drawCanvas, cachedLayer, strokeWidth);
     }
 
@@ -72,7 +72,7 @@ public class SimpleStrikeDelegate extends AbstractStrikeDelegate implements Stri
         boundingBox.inset(-strokeWidth, -strokeWidth);
 
         if (!silent) {
-            invalidate(boundingBox);
+            drawingThread.enqueueArea(boundingBox, UPDATE_MODE_NOWAIT_NOCONVERT_DU_SP1_IGNORE);
         }
     }
 
@@ -86,7 +86,6 @@ public class SimpleStrikeDelegate extends AbstractStrikeDelegate implements Stri
         resetBoundingBox();
         switch (action) {
             case MotionEvent.ACTION_DOWN:
-                wakelockUtils.acquire();
                 // We decide if we want to keep drawing on the same stroke as before
                 tolerate(prevPosition);
                 handleMotion(event);
@@ -99,9 +98,8 @@ public class SimpleStrikeDelegate extends AbstractStrikeDelegate implements Stri
             case MotionEvent.ACTION_CANCEL:
                 handleMotion(event, true);
                 RectF lastStrokeBoundingBox = antializer.resetTotal(currentStroke);
-                invalidate(lastStrokeBoundingBox, UpdateMode.UPDATE_MODE_NOWAIT_GC16_PARTIAL_SP1_IGNORE);
+                drawingThread.enqueueArea(lastStrokeBoundingBox, UPDATE_MODE_NOWAIT_GC16_PARTIAL_SP1_IGNORE);
                 strokesContainer.persistDrawing();
-                wakelockUtils.release();
                 break;
         }
         return true;
@@ -112,19 +110,12 @@ public class SimpleStrikeDelegate extends AbstractStrikeDelegate implements Stri
         boundingBox.union(prevPosition.x, prevPosition.y);
     }
 
-    private boolean tolerate(PointF prevPosition) {
+    private void tolerate(PointF prevPosition) {
         if (Point2D.distance(prevPosition.x, prevPosition.y, lastX, lastY) > TOLERANCE_NOISE_PX) {
             currentStroke = new SimpleStroke(lastX, lastY);
             strokesContainer.setDrawingStroke(currentStroke);
             boundingBox.set(lastX, lastY, lastX, lastY);
-            return false;
         }
-        return true;
-    }
-
-    @Override
-    public void invalidate(RectF dirty) {
-        viewOverride.invalidate(view, dirty, UPDATE_MODE_NOWAIT_NOCONVERT_DU_SP1_IGNORE);
     }
 
     @Override

@@ -26,19 +26,10 @@ public class DummyStrokeContainer implements StrokesContainer {
     }
 
     @Override
-    public void addStrokes(Stroke... strokes) {
-
-    }
-
-    @Override
     public void addStrokes(Collection<Stroke> strokes) {
 
     }
 
-    @Override
-    public void clear() {
-
-    }
 
 
     @Override

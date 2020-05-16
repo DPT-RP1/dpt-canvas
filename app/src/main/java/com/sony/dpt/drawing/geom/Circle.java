@@ -6,7 +6,7 @@ import android.graphics.Rect;
 public class Circle {
     private PointF center;
     private float radius;
-    private Rect temp;
+    private final Rect temp;
     private float strikeWidth;
 
     public Circle() {

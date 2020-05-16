@@ -4,25 +4,26 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.PointF;
-import android.graphics.RectF;
 import android.view.MotionEvent;
-import android.view.View;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.ViewTreeObserver;
 
 import com.sony.dpt.drawing.eraser.EraserDelegate;
 import com.sony.dpt.drawing.eraser.StrokeEraserDelegate;
+import com.sony.dpt.drawing.rendering.DrawingThread;
 import com.sony.dpt.drawing.strokes.PressureSensitiveStrikeDelegate;
 import com.sony.dpt.drawing.strokes.SimpleStrikeDelegate;
 import com.sony.dpt.drawing.strokes.SimpleStrokeContainer;
 import com.sony.dpt.drawing.strokes.StrikeDelegate;
-import com.sony.dpt.utils.WakelockUtils;
+import com.sony.dpt.override.ViewOverride;
 import com.sony.infras.dp_libraries.systemutil.SystemUtil;
 
 import static android.graphics.Bitmap.Config.ARGB_8888;
 
 public class DrawingManager implements DrawingDelegate {
 
-    private final View view;
+    private final SurfaceView view;
     private Bitmap cachedLayer;
     private Canvas drawCanvas;
     private StrikeDelegate strikeDelegate;
@@ -35,15 +36,14 @@ public class DrawingManager implements DrawingDelegate {
     private static int INTERESTING_TOOL_TYPE = MotionEvent.TOOL_TYPE_STYLUS;
     private final SystemUtil.EpdUtil epdUtil;
 
-    private boolean currentDhwState = false;
-    private final WakelockUtils wakelockUtils;
+    private final SurfaceHolder surfaceHolder;
+    private DrawingThread drawingThread;
 
-    public DrawingManager(final View view,
+    public DrawingManager(final SurfaceView view,
                           final int penWidth,
-                          final boolean handlePressureChanges,
-                          final WakelockUtils wakelockUtils) {
+                          final boolean handlePressureChanges) {
         this.view = view;
-        this.wakelockUtils = wakelockUtils;
+        this.surfaceHolder = view.getHolder();
         // This allows for non-stylus compatibility (emulator for ex.)
         detectEmulator();
         epdUtil = SystemUtil.getEpdUtilInstance();
@@ -75,13 +75,16 @@ public class DrawingManager implements DrawingDelegate {
                     // then being rendered to the view
                     drawCanvas = new Canvas(cachedLayer);
 
+                    drawingThread = new DrawingThread(surfaceHolder, cachedLayer, ViewOverride.getInstance());
+                    drawingThread.start();
+
                     SimpleStrikeDelegate simpleStrikeDelegate = new SimpleStrikeDelegate(
                             penWidth,
                             view,
                             cachedLayer,
                             drawCanvas,
-                            new SimpleStrokeContainer(),
-                            wakelockUtils);
+                            drawingThread,
+                            new SimpleStrokeContainer());
                     strikeDelegate = simpleStrikeDelegate;
 
                     pressureStrikeDelegate = new PressureSensitiveStrikeDelegate(
@@ -101,6 +104,7 @@ public class DrawingManager implements DrawingDelegate {
                             view,
                             cachedLayer,
                             drawCanvas,
+                            drawingThread,
                             currentStrikeDelegate);
 
                     currentDelegate = currentStrikeDelegate;
@@ -133,16 +137,6 @@ public class DrawingManager implements DrawingDelegate {
         }
 
         return currentDelegate.onTouchEvent(event);
-    }
-
-    @Override
-    public void invalidate(RectF dirty) {
-        currentDelegate.invalidate(dirty);
-    }
-
-    @Override
-    public void onDraw(Canvas canvas) {
-        currentDelegate.onDraw(canvas);
     }
 
     private int savedStrikePenWidth;
@@ -199,8 +193,7 @@ public class DrawingManager implements DrawingDelegate {
 
     @Override
     public boolean nativeDhw() {
-        return currentDhwState;
+        return currentDelegate.nativeDhw();
     }
-
 
 }

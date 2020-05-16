@@ -1,7 +1,6 @@
 package com.sony.dpt.drawing.strokes;
 
 import android.graphics.Path;
-import android.graphics.PointF;
 import android.graphics.RectF;
 import android.graphics.Region;
 
@@ -14,7 +13,7 @@ public class SimpleStroke implements Stroke {
     private static int currentId = 0;
 
     private final RectF boundingBox;
-    private Path path;
+    private final Path path;
     private final Path circlePath;
     private final int id;
 
@@ -59,11 +58,6 @@ public class SimpleStroke implements Stroke {
 
         circleRegion.setPath(circlePath, clip);
         return !pathRegion.quickReject(circleRegion) && pathRegion.op(circleRegion, Region.Op.INTERSECT);
-    }
-
-    @Override
-    public void addPoint(PointF pointF) {
-        addPoint(pointF.x, pointF.y);
     }
 
     @Override

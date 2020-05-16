@@ -1,13 +1,12 @@
 package com.sony.dpt.drawing.strokes;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
 public class SimpleStrokeContainer implements StrokesContainer {
 
-    private Set<Stroke> strokes;
+    private final Set<Stroke> strokes;
     private Stroke currentlyDrawing;
 
     public SimpleStrokeContainer() {
@@ -25,19 +24,8 @@ public class SimpleStrokeContainer implements StrokesContainer {
     }
 
     @Override
-    public void addStrokes(Stroke... strokes) {
-        addStrokes(Arrays.asList(strokes));
-    }
-
-    @Override
     public void addStrokes(Collection<Stroke> strokes) {
         this.strokes.addAll(strokes);
-    }
-
-    @Override
-    public void clear() {
-        this.currentlyDrawing = null;
-        this.strokes.clear();
     }
 
 

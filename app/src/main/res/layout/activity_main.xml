@@ -2,4 +2,4 @@
 <com.sony.dpt.drawing.DrawableView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/transparent"></com.sony.dpt.drawing.DrawableView>
+    android:background="@android:color/transparent" />

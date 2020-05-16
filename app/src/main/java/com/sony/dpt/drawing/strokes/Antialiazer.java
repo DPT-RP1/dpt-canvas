@@ -26,7 +26,7 @@ public class Antialiazer {
     private final RectF boundingBox;
     private final RectF temp;
 
-    private AntialiazingThread antialiazingThread;
+    private final AntialiazingThread antialiazingThread;
 
     public Antialiazer(final Canvas canvas, final Bitmap cachedLayer, float penWidth) {
         this.canvas = canvas;
@@ -139,14 +139,12 @@ public class Antialiazer {
         private final Paint antializedPaint;
         private final Canvas antializer;
         private final Bitmap antializedBitmap;
-        private final Bitmap cachedLayer;
         private final RectF clipBounds;
         private final Canvas drawingCanvas;
         private final ConcurrentLinkedQueue<Path> paths;
         private final Path totalPath;
 
         public AntialiazingThread(final Canvas drawingCanvas, final Bitmap cachedLayer) {
-            this.cachedLayer = cachedLayer;
             this.clipBounds = new RectF();
             antializedPaint = new Paint(BLACK);
             antializedPaint.setDither(true);
@@ -203,10 +201,6 @@ public class Antialiazer {
                     interrupted = true;
                 }
             }
-        }
-
-        public boolean isReady() {
-            return paths.isEmpty();
         }
     }
 }

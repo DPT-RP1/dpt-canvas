@@ -1,6 +1,5 @@
 package com.sony.dpt.drawing.strokes;
 
-import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.PointF;
 import android.view.MotionEvent;
@@ -28,10 +27,6 @@ public class PressureSensitiveStrikeDelegate extends AbstractStrikeDelegate impl
         this.baseWidth = strikeDelegate.penWidth();
         this.currentWidth = this.baseWidth;
         this.maxPenWidth = this.baseWidth;
-    }
-
-    public void onDraw(Canvas canvas) {
-        strikeDelegate.onDraw(canvas);
     }
 
     public boolean onTouchEvent(MotionEvent event) {

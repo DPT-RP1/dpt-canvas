@@ -6,6 +6,9 @@ import android.graphics.Paint;
 import android.view.MotionEvent;
 import android.view.View;
 
+import com.sony.dpt.drawing.rendering.DrawingThread;
+import com.sony.dpt.override.UpdateMode;
+
 /**
  * This is in charge of erasing on a view
  * <p>
@@ -15,14 +18,14 @@ import android.view.View;
  */
 public class BitmapEraserDelegate extends AbstractEraserDelegate implements EraserDelegate {
 
-    public BitmapEraserDelegate(int eraserWidth, final View view, final Bitmap cachedLayer, final Canvas drawCanvas) {
-        super(eraserWidth, view, cachedLayer, drawCanvas);
+    public BitmapEraserDelegate(int eraserWidth, final View view, final Bitmap cachedLayer, final Canvas drawCanvas, final DrawingThread drawingThread) {
+        super(eraserWidth, view, cachedLayer, drawCanvas, drawingThread);
     }
 
 
     protected void handleMotion(final MotionEvent event) {
         super.handleMotion(event);
-        invalidate(temp);
+        drawingThread.enqueueArea(temp, UpdateMode.UPDATE_MODE_NOWAIT_GC16_PARTIAL_SP1_SP2);
     }
 
     public boolean onTouchEvent(MotionEvent event) {

@@ -1,5 +1,7 @@
 package com.sony.dpt.drawing.geom;
 
+import android.graphics.PointF;
+
 public class Point2D {
 
     /**
@@ -28,6 +30,10 @@ public class Point2D {
      */
     public static double distance(double x1, double y1, double x2, double y2) {
         return Math.sqrt(distanceSq(x1, y1, x2, y2));
+    }
+
+    public static double distance(PointF p1, PointF p2) {
+        return distance(p1.x, p1.y, p2.x, p2.y);
     }
 
 }

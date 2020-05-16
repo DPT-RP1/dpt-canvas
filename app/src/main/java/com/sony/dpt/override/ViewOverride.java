@@ -14,6 +14,7 @@ public class ViewOverride implements IViewOverride {
     private static Method invalidate;
     private static Method setDefaultUpdateMode;
     private static Method lockCanvas;
+    private static Method lockCanvasRect;
 
     private static ViewOverride instance;
 
@@ -80,6 +81,20 @@ public class ViewOverride implements IViewOverride {
             return (Canvas) lockCanvas.invoke(surfaceHolder, updateMode);
         } catch (Exception e) {
             return surfaceHolder.lockCanvas();
+        }
+    }
+
+    @Override
+    public Canvas lockCanvas(SurfaceHolder surfaceHolder, Rect boundingBox, int updateMode) {
+        try {
+            if (lockCanvasRect == null) {
+                lockCanvasRect = surfaceHolder.getClass().getMethod("lockCanvas", Rect.class, int.class);
+                lockCanvasRect.setAccessible(true);
+            }
+
+            return (Canvas) lockCanvasRect.invoke(surfaceHolder, boundingBox, updateMode);
+        } catch (Exception e) {
+            return surfaceHolder.lockCanvas(boundingBox);
         }
     }
 

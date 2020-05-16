@@ -2,14 +2,15 @@ package com.sony.dpt.drawing.eraser;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PointF;
-import android.graphics.PorterDuff;
-import android.graphics.PorterDuffXfermode;
+import android.graphics.RectF;
 import android.view.MotionEvent;
 import android.view.View;
 
 import com.sony.dpt.drawing.geom.Circle;
+import com.sony.dpt.drawing.rendering.DrawingThread;
 import com.sony.dpt.drawing.strokes.StrikeDelegate;
 import com.sony.dpt.drawing.strokes.Stroke;
 import com.sony.dpt.drawing.strokes.StrokesContainer;
@@ -28,14 +29,21 @@ public class StrokeEraserDelegate extends AbstractEraserDelegate implements Eras
     private final Circle eraser;
     private Paint strokeEraserPaint;
 
-    public StrokeEraserDelegate(int eraserWidth,
+    private final DrawingThread drawingThread;
+
+    private final RectF temp;
+
+    public StrokeEraserDelegate(final int eraserWidth,
                                 final View view, final Bitmap cachedLayer, final Canvas drawCanvas,
+                                final DrawingThread drawingThread,
                                 final StrikeDelegate strikeDelegate) {
-        super(eraserWidth, view, cachedLayer, drawCanvas);
+        super(eraserWidth, view, cachedLayer, drawCanvas, drawingThread);
 
         this.strikeDelegate = strikeDelegate;
         this.eraser = new Circle();
         this.eraserRadius = eraserWidth;
+        this.drawingThread = drawingThread;
+        temp = new RectF();
         initStrokeErasure();
     }
 
@@ -43,8 +51,7 @@ public class StrokeEraserDelegate extends AbstractEraserDelegate implements Eras
         strokeEraserPaint = new Paint();
         strokeEraserPaint.setAntiAlias(true);
         strokeEraserPaint.setDither(true);
-        strokeEraserPaint.setAlpha(0);
-        strokeEraserPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
+        strokeEraserPaint.setColor(Color.WHITE);
         strokeEraserPaint.setStyle(Paint.Style.STROKE);
         strokeEraserPaint.setStrokeJoin(Paint.Join.ROUND);
         strokeEraserPaint.setStrokeCap(Paint.Cap.ROUND);
@@ -55,7 +62,9 @@ public class StrokeEraserDelegate extends AbstractEraserDelegate implements Eras
         super.handleMotion(event);
         detectCollisions();
 
-        invalidate(invalidationRectangle, UPDATE_MODE_NOWAIT_NOCONVERT_DU_SP1_IGNORE);
+        temp.set(invalidationRectangle);
+        temp.inset(-eraserRadius - eraserPaint.getStrokeWidth(), -eraserRadius - eraserPaint.getStrokeWidth());
+        drawingThread.enqueueArea(temp, UPDATE_MODE_NOWAIT_NOCONVERT_DU_SP1_IGNORE);
     }
 
     @Override
@@ -66,7 +75,6 @@ public class StrokeEraserDelegate extends AbstractEraserDelegate implements Eras
 
     @Override
     public void setPenWidth(int penWidth) {
-
         strokeEraserPaint.setStrokeWidth(penWidth);
     }
 
@@ -98,7 +106,7 @@ public class StrokeEraserDelegate extends AbstractEraserDelegate implements Eras
         while (it.hasNext()) {
             Stroke candidate = it.next();
             if (candidate.collides(eraser)) {
-                expandInvalidation(candidate.getBoundingBox(), penWidth);
+                expandInvalidation(candidate.getBoundingBox());
                 drawCanvas.drawPath(candidate.getPath(), strokeEraserPaint);
                 it.remove();
             }
