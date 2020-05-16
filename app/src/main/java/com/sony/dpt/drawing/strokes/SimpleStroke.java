@@ -14,7 +14,7 @@ public class SimpleStroke implements Stroke {
     private static int currentId = 0;
 
     private final RectF boundingBox;
-    private final Path path;
+    private Path path;
     private final Path circlePath;
     private final int id;
 
@@ -39,6 +39,11 @@ public class SimpleStroke implements Stroke {
     @Override
     public Path getPath() {
         return path;
+    }
+
+    @Override
+    public void updatePath(Path path) {
+        this.path.addPath(path);
     }
 
     @Override

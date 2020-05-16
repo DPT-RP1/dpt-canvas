@@ -23,6 +23,8 @@ public interface Stroke {
      */
     Path getPath();
 
+    void updatePath(Path path);
+
     boolean collides(Circle circle);
 
     void addPoint(PointF pointF);

@@ -60,11 +60,11 @@ public class Antialiazer {
         draw();
     }
 
-    public RectF resetTotal() {
+    public RectF resetTotal(final Stroke currentStroke) {
         start = null;
         end = null;
 
-        antialiazingThread.apply();
+        currentStroke.updatePath(antialiazingThread.apply());
         antialiazingThread.resetStroke();
 
         temp.set(totalBoundingBox);
@@ -143,6 +143,7 @@ public class Antialiazer {
         private final RectF clipBounds;
         private final Canvas drawingCanvas;
         private final ConcurrentLinkedQueue<Path> paths;
+        private final Path totalPath;
 
         public AntialiazingThread(final Canvas drawingCanvas, final Bitmap cachedLayer) {
             this.cachedLayer = cachedLayer;
@@ -156,17 +157,22 @@ public class Antialiazer {
 
             this.drawingCanvas = drawingCanvas;
             this.paths = new ConcurrentLinkedQueue<Path>();
+            this.totalPath = new Path();
         }
 
         public void resetStroke() {
             clipBounds.setEmpty();
             antializer.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
             paths.clear();
+            totalPath.rewind();
         }
 
-        public void apply() {
+        public Path apply() {
+
             drawingCanvas.drawBitmap(antializedBitmap, 0, 0, null);
+            Path temp = new Path(totalPath);
             resetStroke();
+            return temp;
         }
 
         public void enqueueForAntialiazing(final Path path) {
@@ -183,7 +189,10 @@ public class Antialiazer {
 
                 while (!paths.isEmpty()) {
                     Path next = paths.poll();
-                    antializer.drawPath(next, antializedPaint);
+                    if (next != null) {
+                        totalPath.addPath(next);
+                        antializer.drawPath(next, antializedPaint);
+                    }
                 }
 
                 try {

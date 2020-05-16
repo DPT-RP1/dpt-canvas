@@ -98,7 +98,7 @@ public class SimpleStrikeDelegate extends AbstractStrikeDelegate implements Stri
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
                 handleMotion(event, true);
-                RectF lastStrokeBoundingBox = antializer.resetTotal();
+                RectF lastStrokeBoundingBox = antializer.resetTotal(currentStroke);
                 invalidate(lastStrokeBoundingBox, UpdateMode.UPDATE_MODE_NOWAIT_GC16_PARTIAL_SP1_IGNORE);
                 strokesContainer.persistDrawing();
                 wakelockUtils.release();
