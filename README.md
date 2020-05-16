@@ -5,7 +5,7 @@ This is a stylus-enabled demo of a custom APK for the DPT-RP1.
 * Stylus handwriting as fast as Sony
 * Eraser feature, but not stroke-based (it clears a bitmap around the eraser circle
 rather than detecting intersection between strokes and the eraser like Sony does)
-* Stylus pressure, because yes it works
+* Stylus pressure, because yes it works <-- removed for now, I left the test class and the screenshot
 
 ## Stylus handwriting
 There are 3 ways to program handwriting for the Stylus on the DPT:
@@ -160,10 +160,18 @@ public boolean onTouchEvent(MotionEvent event) {
 }
 ```
 
+## Anti-aliasing delay
+As many have noted while reviewing the DPT-RP1, there's a strange anti-aliasing delay when you finishing writing.
+The way the official app does is that it does an async render thread in a surface view to render strokes
+as fast as possible. Then it stores them, wait a little and redraw the path with a Paint that as AntiAlias true.
+
+What's interesting is that it's possible to go a lot faster with the 4 cores of the machine, and this
+app demonstrate a way to have real-time anti-aliasing. The technique is the same except with a special
+thread just for the anti-aliasing working on the bitmap at the same time.
+
+Bear in mind Sony's application has a lot more to do, and it might be the most optimal solution for them,
+with their load.
+
 ## TODO:
-* Make pressure animate
-* See if can draw the eraser circle fast enough
-* Store / retrieve context-based anotation
-* Make the eraser stroke-based like Sony
 * Store / Retrieve strokes or at least the bitmap with event listeners
 so that clients can retrieve them
