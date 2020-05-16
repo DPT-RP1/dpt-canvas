@@ -13,6 +13,8 @@ import com.sony.dpt.override.UpdateMode;
 import com.sony.dpt.override.ViewOverride;
 import com.sony.infras.dp_libraries.systemutil.SystemUtil;
 
+import static android.graphics.PixelFormat.TRANSLUCENT;
+
 public class DrawableView extends SurfaceView implements SurfaceHolder.Callback2 {
 
     private final DrawingManager drawingManager;
@@ -22,18 +24,21 @@ public class DrawableView extends SurfaceView implements SurfaceHolder.Callback2
 
     public DrawableView(Context context) {
         super(context);
+        this.getHolder().setFormat(TRANSLUCENT);
         this.getHolder().addCallback(this);
         drawingManager = new DrawingManager(this, BASE_STROKE_SIZE, HANDLE_PRESSURE_CHANGE);
     }
 
     public DrawableView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        this.getHolder().setFormat(TRANSLUCENT);
         this.getHolder().addCallback(this);
         drawingManager = new DrawingManager(this, BASE_STROKE_SIZE, HANDLE_PRESSURE_CHANGE);
     }
 
     public DrawableView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
+        this.getHolder().setFormat(TRANSLUCENT);
         this.getHolder().addCallback(this);
         drawingManager = new DrawingManager(this, BASE_STROKE_SIZE, HANDLE_PRESSURE_CHANGE);
     }
@@ -76,7 +81,7 @@ public class DrawableView extends SurfaceView implements SurfaceHolder.Callback2
     public void surfaceRedrawNeeded(SurfaceHolder holder) {
         Canvas canvas = ViewOverride.getInstance().lockCanvas(holder, UpdateMode.UPDATE_MODE_CONVERT_A2_PARTIAL);
         if (canvas != null) {
-            canvas.drawColor(Color.WHITE);
+            canvas.drawColor(Color.TRANSPARENT);
             holder.unlockCanvasAndPost(canvas);
         }
     }
