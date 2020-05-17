@@ -9,7 +9,7 @@
         android:layout_height="match_parent"
         android:background="@android:color/transparent" />
 
-    <com.sony.dpt.image.ImageView
+    <com.sony.dpt.media.ImagePackImageView
         android:id="@+id/background"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

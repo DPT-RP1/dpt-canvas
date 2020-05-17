@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.util.AttributeSet;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -21,6 +22,7 @@ public class DrawableView extends SurfaceView implements SurfaceHolder.Callback2
 
     private static final int BASE_STROKE_SIZE = 5;
     private static final boolean HANDLE_PRESSURE_CHANGE = false;
+    private GestureDetector gestureDetector;
 
     public DrawableView(Context context) {
         super(context);
@@ -43,8 +45,15 @@ public class DrawableView extends SurfaceView implements SurfaceHolder.Callback2
         drawingManager = new DrawingManager(this, BASE_STROKE_SIZE, HANDLE_PRESSURE_CHANGE);
     }
 
+    public void setGestureDetector(GestureDetector gestureDetector) {
+        this.gestureDetector = gestureDetector;
+    }
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        if (event.getToolType(0) == MotionEvent.TOOL_TYPE_FINGER && gestureDetector != null) {
+            return gestureDetector.onTouchEvent(event);
+        }
         return drawingManager.onTouchEvent(event);
     }
 
